@@ -155,7 +155,7 @@ export default function FlowCanvas() {
   // Empty state: "No flow loaded" centered
   if (!flow) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-primary min-h-0">
+      <div className="flex-1 flex items-center justify-center min-h-0" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <p className="text-secondary text-sm">No flow loaded</p>
       </div>
     );
@@ -163,7 +163,7 @@ export default function FlowCanvas() {
 
   // D-15: fitView on load, zoom 0.2–2.0
   return (
-    <div className="flex-1 bg-primary min-h-0" style={{ height: '100%' }}>
+    <div className="flex-1 min-h-0" style={{ backgroundColor: 'var(--bg-primary)', height: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

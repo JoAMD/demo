@@ -15,7 +15,7 @@ function StepNodeComponent({ data }: NodeProps) {
     'rounded-lg border px-4 py-2 text-sm',
     isActive
       ? 'border-accent border-l-[3px] bg-card text-primary'
-      : 'border-border bg-card',
+      : 'border-border bg-card text-primary',
     !executed && !isActive ? 'opacity-50' : '',
   ]
     .filter(Boolean)

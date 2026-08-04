@@ -91,7 +91,7 @@ export default function JsonEditor() {
         onChange={handleChange}
         placeholder="Event payload JSON"
         aria-invalid={parseError ? 'true' : undefined}
-        className={`flex-1 min-h-[200px] resize-y font-mono text-[13px] bg-card rounded-lg p-3 focus-visible:ring-2 focus-visible:ring-accent outline-none ${
+        className={`flex-1 min-h-[200px] resize-y font-mono text-[13px] text-primary bg-card rounded-lg p-3 focus-visible:ring-2 focus-visible:ring-accent outline-none ${
           parseError
             ? 'border-error border'
             : 'border-card border'

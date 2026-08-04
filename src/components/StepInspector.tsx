@@ -113,7 +113,7 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
         <textarea
           readOnly
           value={step.body}
-          className="flex-1 font-mono text-[13px] text-secondary bg-primary border border-border rounded p-2 resize-none"
+          className="flex-1 font-mono text-[13px] text-secondary border border-border rounded p-2 resize-none"
         />
       ) : (
         <div className="flex-1 overflow-y-auto">
