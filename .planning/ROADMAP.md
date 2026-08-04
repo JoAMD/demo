@@ -61,9 +61,9 @@
 
 ---
 
-## Phase 3: Split Popover & Polish
+## Phase 3: Split Popover & Features
 
-**Goal:** The killer differentiator — per-condition split evaluation popover. Branch override, export, sample templates, edge case handling, final polish.
+**Goal:** The killer differentiator — per-condition split evaluation popover. Branch override, export, sample templates, edge case handling.
 
 **Requirements covered:** SPLT-01, SPLT-02, SPLT-03, EVT-02
 
@@ -89,14 +89,48 @@
 
 ---
 
+## Phase 4: UI Polish & Professional Styling
+
+**Goal:** Transform functional prototype into polished, professional-grade debugging tool. Visual hierarchy, consistent design language, refined interactions.
+
+**Requirements covered:** UI-01, UI-02, UI-03, UI-04, UI-05
+
+**Plans:**
+
+| Plan | Description | Dependencies |
+|------|-------------|--------------|
+| 4.1 Header Redesign | Flow name display, status badge (Draft/Live), action buttons (code view, undo/redo, export), "Go Live" CTA. | All |
+| 4.2 Node Styling | Colored backgrounds by type (trigger=orange, email=blue, split=purple, webhook=green), icons, rounded cards, subtle shadows. | 1.4 |
+| 4.3 Sidebar Rework | Flow info panel or step inspector instead of "Add Steps". Context-aware left panel. | 2.1 |
+| 4.4 Color System | Refine palette for better contrast, accessibility (WCAG AA), consistent token usage across light/dark modes. | None |
+| 4.5 Typography & Spacing | Font scale, line heights, padding/margin consistency. Professional rhythm. | None |
+| 4.6 Loading & Empty States | Skeleton loaders, progress indicators, meaningful empty states with calls to action. | All |
+| 4.7 Animations & Transitions | Smooth node transitions, hover effects, panel slide-ins, trace path animation polish. | 2.2 |
+| 4.8 Responsive Layout | Flex/grid adjustments for different screen sizes. Minimum viable mobile experience. | All |
+
+**Exit criteria:**
+- Header matches professional SaaS tool aesthetic
+- Nodes visually distinct by type with icons and colors
+- Sidebar provides contextual information without clutter
+- Color palette passes WCAG AA contrast checks
+- Typography creates clear visual hierarchy
+- Loading states provide feedback during async operations
+- Animations feel smooth and purposeful (not distracting)
+- Layout works on screens ≥1024px wide
+
+**Risk:** Over-polishing can delay core features. Keep scope tight — visual consistency, not redesign. Reuse existing Tailwind tokens where possible.
+
+---
+
 ## Phase Summary
 
 | Phase | Status | Requirements | Plans |
 |-------|--------|-------------|-------|
 | 1: Foundation & Trace Engine | ✓ | 7 | 5 |
 | 2: Trace UI & Inspector | ○ | 7 | 7 |
-| 3: Split Popover & Polish | ○ | 4 | 5 |
-| **Total** | | **18** | **17** |
+| 3: Split Popover & Features | ○ | 4 | 5 |
+| 4: UI Polish & Professional Styling | ○ | 5 | 8 |
+| **Total** | | **23** | **25** |
 
 ---
 
