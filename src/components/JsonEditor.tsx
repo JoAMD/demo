@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { flows } from '../mocks/fixtures/flows';
-import { payloads } from '../mocks/fixtures/payloads';
+import { payloads, payloadsByEvent } from '../mocks/fixtures/payloads';
 import ContactSelector from './ContactSelector';
 
 export default function JsonEditor() {
@@ -17,10 +17,6 @@ export default function JsonEditor() {
       setPayload: state.setPayload,
     }))
   );
-
-  useEffect(() => {
-    if (!flow && flows.length > 0) setFlow(flows[0]);
-  }, [flow, setFlow]);
 
   useEffect(() => {
     const text = JSON.stringify(payload, null, 2);
@@ -55,14 +51,23 @@ export default function JsonEditor() {
     <div className="h-full flex flex-col gap-4 p-4">
       <ContactSelector />
       <label htmlFor="flow-select" className="text-xs text-secondary">
-        Flow
+        Template
       </label>
       <select
         id="flow-select"
         value={flow?.id ?? ''}
         onChange={(e) => {
           const selected = flows.find((f) => f.id === Number(e.target.value));
-          if (selected) setFlow(selected);
+          if (selected) {
+            setFlow(selected);
+            if (selected.trigger.kind === 'trigger') {
+              const matchingPayload = payloadsByEvent[selected.trigger.event];
+              if (matchingPayload) {
+                setPayload(matchingPayload);
+                setJsonText(JSON.stringify(matchingPayload, null, 2));
+              }
+            }
+          }
         }}
         className="bg-card text-white border border-border rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
