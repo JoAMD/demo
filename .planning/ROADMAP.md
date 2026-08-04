@@ -99,5 +99,51 @@
 | **Total** | | **18** | **17** |
 
 ---
+
+## API Reference (from live flows)
+
+**Flow structure:**
+```typescript
+{
+  id: number
+  name: string
+  status: "draft" | "live"
+  trigger: { event: string, action_name: string, contact_list_id?: number }
+  steps: Step[]
+}
+```
+
+**Step types:**
+| Type | Key fields |
+|------|-----------|
+| email | subject, body, design.sections[], template_id |
+| split | filters[{name, value, predicate}], yes: Step[], no: Step[] |
+| webhook | url, method, headers |
+| sms | (to be confirmed) |
+| emit_event | (to be confirmed) |
+| subscribe/unsubscribe | (to be confirmed) |
+| enrich/verify | (to be confirmed) |
+
+**Split filter predicates:** `eq`, `neq`, `gt`, `lt`, `contains` (TBD — need more examples)
+
+**UI theme:**
+
+| Token | Dark mode | Light mode |
+|-------|-----------|------------|
+| bg-primary | `#0f0f0f` | `#f5f5f5` |
+| bg-sidebar | `#1a1a1a` | `#ffffff` |
+| bg-card | `#1e1e1e` | `#ffffff` |
+| border-card | `#2a2a2a` | `#e5e5e5` |
+| text-primary | `#ffffff` | `#18181b` |
+| text-secondary | `#a1a1aa` | `#71717a` |
+| accent | `#f97316` | `#f97316` |
+| success | `#22c55e` | `#22c55e` |
+| error | `#ef4444` | `#ef4444` |
+| radius-card | `8px` | `8px` |
+| radius-button | `6px` | `6px` |
+
+**Status badge colors:** New = blue, Beta = orange, Soon = gray
+
+---
 *Roadmap created: 2026-08-03*
-*Last updated: 2026-08-03 — added 5 features from spec gap analysis (webhook auto-fill, wait timeline, liquid drill-down, sandbox mode, export)*
+*Last updated: 2026-08-04 — added API reference from live flow responses*
