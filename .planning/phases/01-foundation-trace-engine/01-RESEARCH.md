@@ -517,20 +517,11 @@ export function flowToGraph(flow: Flow): { nodes: Node[]; edges: Edge[] } {
 
 ## Open Questions
 
-1. **Split filter predicate types — are `eq`, `neq`, `gt`, `lt`, `contains` the complete list?**
-   - What we know: ROADMAP.md lists these 5 predicates
-   - What's unclear: Whether `gte`, `lte`, `startsWith`, `endsWith`, `regex` are needed
-   - Recommendation: Start with the 5 listed. Add more in Phase 3 when split popover validates against real flows.
+1. **(RESOLVED)** Split filter predicate types — use the 5 listed in ROADMAP.md (`eq`, `neq`, `gt`, `lt`, `contains`). Add more in Phase 3 when split popover validates against real flows.
 
-2. **Step `id` format — numeric, UUID, or slug?**
-   - What we know: Flow `id` is `number` per API reference
-   - What's unclear: Step `id` format not specified
-   - Recommendation: Use string slugs (`step_1`, `step_2`) for readability in trace UI. Verify against real flow data.
+2. **(RESOLVED)** Step `id` format — use string slugs (`step_1`, `step_2`) for readability in trace UI. Verify against real flow data in Phase 2.
 
-3. **Contact data shape for `contact.*` fields**
-   - What we know: D-11 says 5 test contacts with varied attributes
-   - What's unclear: Exact attribute names (engagement_rating, tier, bounced, unique_opens, unsubscribed_at)
-   - Recommendation: Define in fixtures based on D-11 list. Adjust in Phase 2 when contact selector wires up.
+3. **(RESOLVED)** Contact data shape — define in fixtures based on D-11 attribute list (`engagement_rating`, `tier`, `bounced`, `unique_opens`, `unsubscribed_at`). Adjust in Phase 2 when contact selector wires up.
 
 ## Environment Availability
 

@@ -17,8 +17,8 @@
 | 1.1 Types & Store | `01-01-PLAN.md` | TypeScript types for flow graph, step results, trace state. Zustand store. | None |
 | 1.2 Execution Engine | `01-02-PLAN.md` | BFS flow graph evaluator — pure function, no React. Handles trigger, wait, split, email nodes. | 1.1 |
 | 1.3 MSW Handlers & Fixtures | `01-03-PLAN.md` | Mock `/api/flows/{id}/trace` endpoint. Fixtures: 3 sample flow definitions (linear, branching, multi-step), 5 event payloads (cart_abandoned, signup, etc.), 5 test contacts with varied attributes (engagement_rating, tier, bounced, unique_opens, unsubscribed_at). | 1.1 |
-| 1.4 Canvas Shell | `01-04-PLAN.md` | React Flow wrapper with basic node/edge rendering. Flow graph displays. | 1.1 |
-| 1.5 JSON Editor | `01-05-PLAN.md` | Textarea with monospace styling. Controlled input for event payload. | 1.1 |
+| 1.4 Canvas Shell + App Shell | `01-04-PLAN.md` | React Flow wrapper with dagre auto-layout, main.tsx MSW worker startup, App.tsx flex layout with FlowCanvas + JsonEditor, default flow fixture loads into store on mount. | 1.1, 1.3 |
+| 1.5 JSON Editor | `01-05-PLAN.md` | Textarea with monospace styling. Controlled input for event payload. Run Trace button calls executeTrace. | 1.1, 1.2 |
 
 **Exit criteria:**
 - Flow graph renders in canvas (React Flow)
