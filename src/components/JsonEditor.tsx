@@ -74,7 +74,7 @@ export default function JsonEditor() {
             }
           }
         }}
-        className="bg-card text-white border border-border rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="bg-card text-primary border border-border rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {flows.map((f) => (
           <option key={f.id} value={f.id}>

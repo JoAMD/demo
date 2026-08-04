@@ -10,7 +10,8 @@ const nodeTypes = { step: StepNode };
 
 // Accent color from UI-SPEC
 const ACCENT = '#f97316';
-const MUTED = '#2a2a2a';
+// ponytail: edge color uses CSS variable for theme support
+const MUTED = 'var(--border-color)';
 
 function countConditions(group: FilterGroup): number {
   return group.conditions.length;
@@ -59,8 +60,8 @@ function flowToGraph(
       target: targetId,
       animated: executed,
       label: label,
-      labelStyle: { fill: '#a1a1aa', fontSize: 10 },
-      labelBgStyle: { fill: '#1a1a1a', fillOpacity: 0.8 },
+      labelStyle: { fill: 'var(--text-secondary)', fontSize: 10 },
+      labelBgStyle: { fill: 'var(--bg-secondary)', fillOpacity: 0.8 },
       labelBgPadding: [4, 2] as [number, number],
       style: executed
         ? { stroke: ACCENT, strokeWidth: 2 }

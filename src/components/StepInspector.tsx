@@ -41,22 +41,22 @@ function StepContent({ step, result }: { step: Step; result: StepResult }) {
       return <SplitPreview step={step} result={result} />;
     case 'webhook':
       return (
-        <div className="text-[14px] text-[#a1a1aa]">
-          <span className="text-white">URL:</span> {step.url}
+        <div className="text-[14px] text-secondary">
+          <span className="text-primary">URL:</span> {step.url}
         </div>
       );
     case 'sms':
       return (
-        <div className="text-[14px] text-[#a1a1aa]">
-          <span className="text-white">Message:</span> {step.message}
+        <div className="text-[14px] text-secondary">
+          <span className="text-primary">Message:</span> {step.message}
         </div>
       );
     case 'trigger':
       return (
-        <div className="text-[14px] text-[#a1a1aa]">
-          <span className="text-white">Event:</span> {step.event}
+        <div className="text-[14px] text-secondary">
+          <span className="text-primary">Event:</span> {step.event}
           {Object.keys(payload).length === 0 && (
-            <div className="mt-2 text-[12px] text-[#52525b] italic">No payload provided</div>
+            <div className="mt-2 text-[12px] text-muted italic">No payload provided</div>
           )}
         </div>
       );
@@ -91,8 +91,8 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
           onClick={() => setShowRaw(false)}
           className={`text-[12px] px-2 py-0.5 rounded ${
             !showRaw
-              ? 'bg-[#f97316] text-white'
-              : 'bg-[#1e1e1e] text-[#a1a1aa] border border-[#2a2a2a]'
+              ? 'bg-accent text-white'
+              : 'bg-card text-secondary border border-border'
           }`}
         >
           Rendered
@@ -102,8 +102,8 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
           onClick={() => setShowRaw(true)}
           className={`text-[12px] px-2 py-0.5 rounded ${
             showRaw
-              ? 'bg-[#f97316] text-white'
-              : 'bg-[#1e1e1e] text-[#a1a1aa] border border-[#2a2a2a]'
+              ? 'bg-accent text-white'
+              : 'bg-card text-secondary border border-border'
           }`}
         >
           Raw HTML
@@ -113,7 +113,7 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
         <textarea
           readOnly
           value={step.body}
-          className="flex-1 font-mono text-[13px] text-[#a1a1aa] bg-[#0f0f0f] border border-[#2a2a2a] rounded p-2 resize-none"
+          className="flex-1 font-mono text-[13px] text-secondary bg-primary border border-border rounded p-2 resize-none"
         />
       ) : (
         <div className="flex-1 overflow-y-auto">
@@ -136,7 +136,7 @@ function FilterCondition({ condition, depth = 0 }: { condition: Filter | FilterG
   if ('logic' in condition) {
     return (
       <div className={`ml-${depth * 4}`}>
-        <span className="text-[11px] text-[#f97316] font-medium uppercase">
+        <span className="text-[11px] text-accent font-medium uppercase">
           {condition.logic}
         </span>
         <div className="flex flex-col gap-1 mt-1">
@@ -148,8 +148,8 @@ function FilterCondition({ condition, depth = 0 }: { condition: Filter | FilterG
     );
   }
   return (
-    <div className={`flex items-center text-[14px] py-1 border-b border-[#2a2a2a] last:border-0 ml-${depth * 4}`}>
-      <span className="font-mono text-[#a1a1aa]">
+    <div className={`flex items-center text-[14px] py-1 border-b border-border last:border-0 ml-${depth * 4}`}>
+      <span className="font-mono text-secondary">
         {condition.name} {condition.predicate} {condition.value}
       </span>
     </div>
@@ -178,38 +178,38 @@ function SplitPreview({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="text-[12px] bg-[#f97316] text-white rounded-full px-2 py-0.5">
+        <span className="text-[12px] bg-accent text-white rounded-full px-2 py-0.5">
           Branch: {result.branchTaken}
         </span>
-        <span className="text-[12px] text-[#a1a1aa]">
+        <span className="text-[12px] text-secondary">
           {conditions.length} condition{conditions.length !== 1 ? 's' : ''}
         </span>
-        <span className="text-[11px] text-[#f97316] uppercase">
+        <span className="text-[11px] text-accent uppercase">
           {step.filters.logic}
         </span>
       </div>
       {result.error && (
-        <span className="text-[12px] text-[#ef4444]">{result.error}</span>
+        <span className="text-[12px] text-error">{result.error}</span>
       )}
       {conditions.map((cr, i) => {
         const filter = filters[i];
         return (
           <div
             key={`${cr.name}-${i}`}
-            className="flex items-center justify-between text-[13px] py-1.5 border-b border-[#2a2a2a] last:border-0"
+            className="flex items-center justify-between text-[13px] py-1.5 border-b border-border last:border-0"
           >
-            <span className="font-mono text-[#a1a1aa]">
+            <span className="font-mono text-secondary">
               {cr.name} {filter?.predicate} {filter?.value}
             </span>
             <span className="flex items-center gap-2">
-              <span className="text-[#52525b]">
+              <span className="text-muted">
                 → {cr.value === undefined ? 'undefined' : String(cr.value)}
               </span>
                 <span
                   className={`text-[11px] rounded-full px-1.5 py-0.5 border ${
                     cr.passed
                       ? 'border-[#60a5fa]/40 bg-[#60a5fa]/10 text-[#60a5fa]'
-                      : 'border-[#a1a1aa]/40 bg-[#a1a1aa]/10 text-[#a1a1aa]'
+                      : 'border-[#a1a1aa]/40 bg-[#a1a1aa]/10 text-secondary'
                   }`}
                 >
                   {cr.passed ? 'TRUE' : 'FALSE'}
@@ -225,10 +225,10 @@ function SplitPreview({
 function EmptyState() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-4">
-      <h2 className="text-[20px] font-semibold text-white">
+      <h2 className="text-[20px] font-semibold text-primary">
         Run a trace to see results
       </h2>
-      <p className="text-[14px] text-[#a1a1aa] mt-2 text-center">
+      <p className="text-[14px] text-secondary mt-2 text-center">
         Enter an event payload and click Run Trace to see how your flow
         evaluates.
       </p>
@@ -239,8 +239,8 @@ function EmptyState() {
 function StepNotFound() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-4">
-      <p className="text-[14px] text-[#a1a1aa]">Step not in trace results</p>
-      <p className="text-[12px] text-[#52525b] mt-1">Run a trace or select an executed step</p>
+      <p className="text-[14px] text-secondary">Step not in trace results</p>
+      <p className="text-[12px] text-muted mt-1">Run a trace or select an executed step</p>
     </div>
   );
 }
@@ -269,21 +269,21 @@ function StepDetail({
       onKeyDown={onKeyDown}
     >
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-[16px] font-semibold text-white">{stepTitle(step)}</h3>
-        <span className="text-[12px] text-[#a1a1aa] rounded-full px-2 py-0.5 bg-[#1e1e1e] border border-[#2a2a2a]">
+        <h3 className="text-[16px] font-semibold text-primary">{stepTitle(step)}</h3>
+        <span className="text-[12px] text-secondary rounded-full px-2 py-0.5 bg-card border border-border">
           {step.kind}
         </span>
         <span
           className={`text-[12px] rounded-full px-2 py-0.5 ${
             result.passed
-              ? 'bg-[#22c55e]/10 text-[#22c55e]'
-              : 'bg-[#ef4444]/10 text-[#ef4444]'
+              ? 'bg-success/10 text-success'
+              : 'bg-error/10 text-error'
           }`}
         >
           {result.passed ? 'PASS' : 'FAIL'}
         </span>
         {result.error && (
-          <span className="text-[12px] text-[#ef4444] ml-2">
+          <span className="text-[12px] text-error ml-2">
             {result.error}
           </span>
         )}
@@ -293,12 +293,12 @@ function StepDetail({
         <StepContent step={step} result={result} />
       </div>
 
-      <div className="flex justify-between pt-3 border-t border-[#2a2a2a]">
+      <div className="flex justify-between pt-3 border-t border-border">
         <button
           type="button"
           onClick={onPrev}
           disabled={stepIndex <= 0}
-          className="text-[14px] text-[#a1a1aa] disabled:opacity-30 disabled:cursor-not-allowed hover:text-white"
+          className="text-[14px] text-secondary disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
         >
           ← Previous
         </button>
@@ -306,7 +306,7 @@ function StepDetail({
           type="button"
           onClick={onNext}
           disabled={stepIndex >= totalSteps - 1}
-          className="text-[14px] text-[#a1a1aa] disabled:opacity-30 disabled:cursor-not-allowed hover:text-white"
+          className="text-[14px] text-secondary disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
         >
           Next →
         </button>

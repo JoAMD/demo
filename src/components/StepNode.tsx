@@ -14,8 +14,8 @@ function StepNodeComponent({ data }: NodeProps) {
   const nodeClasses = [
     'rounded-lg border px-4 py-2 text-sm',
     isActive
-      ? 'border-[#f97316] border-l-[3px] bg-[#1e1e1e] text-white'
-      : 'border-[#2a2a2a] bg-[#1e1e1e]',
+      ? 'border-accent border-l-[3px] bg-card text-primary'
+      : 'border-border bg-card',
     !executed && !isActive ? 'opacity-50' : '',
   ]
     .filter(Boolean)
@@ -25,7 +25,7 @@ function StepNodeComponent({ data }: NodeProps) {
     <div className={nodeClasses} style={{ width: 172 }}>
       <Handle type="target" position={Position.Top} />
       <div className="font-medium text-center truncate">{label}</div>
-      <div className="text-xs text-[#a1a1aa] text-center">{kind}</div>
+      <div className="text-xs text-secondary text-center">{kind}</div>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

@@ -60,7 +60,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
               <button
                 type="button"
                 onClick={() => setInspectorOpen(true)}
-                className="text-[11px] px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#a1a1aa] hover:text-white rounded"
+                className="text-[11px] px-2 py-1 bg-sidebar border border-border text-secondary hover:text-primary rounded"
               >
                 Inspector
               </button>
@@ -69,7 +69,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
               <button
                 type="button"
                 onClick={() => setEditorOpen(true)}
-                className="text-[11px] px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#a1a1aa] hover:text-white rounded"
+                className="text-[11px] px-2 py-1 bg-sidebar border border-border text-secondary hover:text-primary rounded"
               >
                 Editor
               </button>
@@ -83,7 +83,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
         <div
           role="separator"
           aria-label="Resize step inspector"
-          className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
+          className="w-1 bg-border hover:bg-accent cursor-col-resize transition-colors"
           onMouseDown={(e) => handleInspectorResize(e.nativeEvent)}
         />
       )}
@@ -91,15 +91,15 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
       {/* Inspector */}
       {inspectorOpen && (
         <div
-          className="h-full flex flex-col border-l border-[#2a2a2a]"
+          className="h-full flex flex-col border-l border-border"
           style={{ width: inspectorWidth }}
         >
-          <div className="h-8 flex items-center justify-between px-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
-            <span className="text-xs text-[#a1a1aa]">Step Inspector</span>
+          <div className="h-8 flex items-center justify-between px-3 bg-sidebar border-b border-border">
+            <span className="text-xs text-secondary">Step Inspector</span>
             <button
               type="button"
               onClick={() => setInspectorOpen(false)}
-              className="text-[#a1a1aa] hover:text-white text-xs"
+              className="text-secondary hover:text-primary text-xs"
               aria-label="Close panel"
             >
               ✕
@@ -114,7 +114,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
         <div
           role="separator"
           aria-label="Resize JSON editor"
-          className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
+          className="w-1 bg-border hover:bg-accent cursor-col-resize transition-colors"
           onMouseDown={(e) => handleEditorResize(e.nativeEvent)}
         />
       )}
@@ -122,15 +122,15 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
       {/* Editor */}
       {editorOpen && (
         <div
-          className="h-full flex flex-col border-l border-[#2a2a2a]"
+          className="h-full flex flex-col border-l border-border"
           style={{ width: editorWidth }}
         >
-          <div className="h-8 flex items-center justify-between px-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
-            <span className="text-xs text-[#a1a1aa]">Test data</span>
+          <div className="h-8 flex items-center justify-between px-3 bg-sidebar border-b border-border">
+            <span className="text-xs text-secondary">Test data</span>
             <button
               type="button"
               onClick={() => setEditorOpen(false)}
-              className="text-[#a1a1aa] hover:text-white text-xs"
+              className="text-secondary hover:text-primary text-xs"
               aria-label="Close panel"
             >
               ✕
