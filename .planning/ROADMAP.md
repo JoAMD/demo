@@ -38,15 +38,11 @@
 
 **Plans:**
 
-| Plan | Description | Dependencies | Audit Notes |
-|------|-------------|--------------|-------------|
-| 2.1 Step Inspector | Per-step evaluation log with PASS/FAIL pills, branch taken, resolved values. | 1.2, 1.4 | **Keep.** Core debug UX. Absorb wait-step timeline into this plan (show duration in the step row). |
-| 2.2 Path Highlight | Animated blue line on canvas for executed path. Click node → jump inspector. | 1.4, 2.1 | **Keep.** Essential for "show the path" value prop. |
-| 2.3 Contact Selector | Dropdown to pick test contact. Auto-populates contact.* fields in payload. | 1.5 | **Keep.** Small, high-value. |
-| 2.4 Run Trace Wiring | "Run Trace" button connects engine → canvas overlay + dock. Full loop. | 1.2, 1.4, 2.1, 2.2 | **Merge into 2.1.** This is glue code between existing pieces, not a standalone plan. The step inspector + path highlight already need this wiring to function. |
-| 2.5 Recent Webhook Auto-fill | Dropdown fetches last 5 events via `nitro_query(events)`. Pick one to pre-fill JSON editor. | 1.3, 1.5 | **Drop.** YAGNI. Users paste payloads manually — that's the whole point of a debug tool. Revisit if users ask for it. |
-| 2.6 Wait Step Timeline | Horizontal timeline bar for wait nodes: entry time, duration, exit time, local time conversion, inbox window warning. | 1.2, 2.1 | **Merge into 2.1.** Show wait duration and time window in the step inspector row — no separate horizontal bar needed. |
-| 2.7 Liquid Drill-down | Hover card on resolved Liquid variables: source path, type, fallback status, full path walked for nested access. | 1.2, 2.1 | **Keep but simplify.** Show source variable name and resolved value in a tooltip. Full "path walked" tree is overkill — show it in the step inspector detail view only for failed resolutions. |
+| Plan | PLAN.md | Description | Dependencies |
+|------|---------|-------------|--------------|
+| 2.1 Step Inspector + Layout | `02-01-PLAN.md` | StepInspector detail view (PASS/FAIL, email preview, split conditions), TraceDock 3-panel resizable layout, Run Trace in header | 1.2, 1.4 |
+| 2.2 Path Highlight + Node Click | `02-02-PLAN.md` | Animated orange dashed path on canvas, node click → inspector jump, active/unexecuted node styling | 1.4, 2.1 |
+| 2.3 Contact Selector | `02-03-PLAN.md` | Dropdown with 5 test contacts, auto-merge contact.* fields into payload, header integration | 1.5, 2.1 |
 
 **Exit criteria:**
 - User can enter payload, pick contact, click "Run Trace"
@@ -115,10 +111,10 @@
 | Phase | Status | Requirements | Plans |
 |-------|--------|-------------|-------|
 | 1: Foundation & Trace Engine | ✓ | 7 | 5 |
-| 2: Trace UI & Inspector | ○ | 7 | 4 |
+| 2: Trace UI & Inspector | ○ | 7 | 3 |
 | 3: Split Popover & Features | ○ | 4 | 3 |
 | 4: UI Polish & Professional Styling | ○ | 5 | 3 |
-| **Total** | | **23** | **15** |
+| **Total** | | **23** | **14** |
 
 ---
 
@@ -181,4 +177,4 @@
 
 ---
 *Roadmap created: 2026-08-03*
-*Last updated: 2026-08-04 — Added Phase 4 screenshot prereq, polish ordering decision note. Phase 4 trimmed (8→3), Phase 2 audit (7→4), Phase 3 audit (5→3). Total plans: 25→15.*
+*Last updated: 2026-08-04 — Phase 2 planned (3 plans). Total plans: 15→14.*
