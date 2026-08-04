@@ -36,9 +36,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Split Evaluation
 
-- [ ] **SPLT-01**: Clicking a split node opens per-condition popover
-- [ ] **SPLT-02**: Popover shows each condition expression, evaluated values, and PASS/FAIL
-- [ ] **SPLT-03**: Popover shows overall result (which branch taken) and condition count
+- [x] **SPLT-01**: Clicking a split node opens per-condition popover
+- [x] **SPLT-02**: Popover shows each condition expression, evaluated values, and PASS/FAIL
+- [x] **SPLT-03**: Popover shows overall result (which branch taken) and condition count
 
 ## v2 Requirements
 
@@ -97,11 +97,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | INSP-02 | Phase 2 | Pending |
 | INSP-03 | Phase 2 | Pending |
 | INSP-04 | Phase 2 | Pending |
-| SPLT-01 | Phase 3 | Pending |
-| SPLT-02 | Phase 3 | Pending |
-| SPLT-03 | Phase 3 | Pending |
+| SPLT-01 | Phase 3 | Complete |
+| SPLT-02 | Phase 3 | Complete |
+| SPLT-03 | Phase 3 | Complete |
 
 **Coverage:**
+
 - v1 requirements: 18 total
 - Mapped to phases: 18
 - Unmapped: 0 ✓
