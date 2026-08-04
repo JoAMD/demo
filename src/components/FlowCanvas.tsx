@@ -8,6 +8,10 @@ import type { Flow, Step } from '../engine/types';
 
 const nodeTypes = { step: StepNode };
 
+// Accent color from UI-SPEC
+const ACCENT = '#f97316';
+const MUTED = '#2a2a2a';
+
 // D-14: Simple labeled box — label derived from step kind
 function stepLabel(step: Step): string {
   switch (step.kind) {
@@ -20,8 +24,8 @@ function stepLabel(step: Step): string {
   }
 }
 
-// Flow tree → React Flow nodes/edges
-function flowToGraph(flow: Flow): { nodes: Node[]; edges: Edge[] } {
+// Flow tree → React Flow nodes/edges with path highlight
+function flowToGraph(flow: Flow, executedIds: Set<string>): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -29,13 +33,22 @@ function flowToGraph(flow: Flow): { nodes: Node[]; edges: Edge[] } {
     nodes.push({
       id: step.id,
       position: { x: 0, y: 0 },
-      data: { label: stepLabel(step), kind: step.kind },
+      data: { label: stepLabel(step), kind: step.kind, executed: executedIds.has(step.id) },
       type: 'step',
     });
   }
 
   function addEdge(sourceId: string, targetId: string) {
-    edges.push({ id: `${sourceId}-${targetId}`, source: sourceId, target: targetId });
+    const executed = executedIds.has(sourceId) && executedIds.has(targetId);
+    edges.push({
+      id: `${sourceId}-${targetId}`,
+      source: sourceId,
+      target: targetId,
+      animated: executed,
+      style: executed
+        ? { stroke: ACCENT, strokeWidth: 2 }
+        : { stroke: MUTED, strokeWidth: 1 },
+    });
   }
 
   // Recursively traverse split children
@@ -97,13 +110,17 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
 
 export default function FlowCanvas() {
   const flow = useTraceStore(useShallow((s) => s.flow));
+  const results = useTraceStore(useShallow((s) => s.results));
 
-  // Memoize layout computation — only recomputes when flow changes
+  // Derived set of executed step IDs — memoized on results
+  const executedIds = useMemo(() => new Set(results.map((r) => r.stepId)), [results]);
+
+  // Memoize layout computation — only recomputes when flow or results change
   const { nodes, edges } = useMemo(() => {
     if (!flow) return { nodes: [], edges: [] };
-    const graph = flowToGraph(flow);
+    const graph = flowToGraph(flow, executedIds);
     return getLayoutedElements(graph.nodes, graph.edges);
-  }, [flow]);
+  }, [flow, executedIds]);
 
   // Empty state: "No flow loaded" centered
   if (!flow) {
