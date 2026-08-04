@@ -1,17 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { executeTrace } from '../engine/executionEngine';
+import { flows } from '../mocks/fixtures/flows';
 import { payloads } from '../mocks/fixtures/payloads';
 
 export default function JsonEditor() {
   const [jsonText, setJsonText] = useState(() => JSON.stringify(payloads[0], null, 2));
   const [parseError, setParseError] = useState<string | null>(null);
 
-  const { flow, status, setPayload, setResults, setStatus } = useTraceStore(
+  const { flow, status, setFlow, setPayload, setResults, setStatus } = useTraceStore(
     useShallow((state) => ({
       flow: state.flow,
       status: state.status,
+      setFlow: state.setFlow,
       setPayload: state.setPayload,
       setResults: state.setResults,
       setStatus: state.setStatus,
@@ -19,6 +21,10 @@ export default function JsonEditor() {
   );
 
   console.log('JsonEditor render', { flow: !!flow, status, parseError });
+
+  useEffect(() => {
+    if (!flow && flows.length > 0) setFlow(flows[0]);
+  }, [flow, setFlow]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -59,10 +65,12 @@ export default function JsonEditor() {
     console.log('Running trace...', { flowId: flow.id, payload: parsedPayload });
     setStatus('running');
     try {
-      const traceResult = executeTrace(flow, parsedPayload);
-      console.log('Trace complete', { results: traceResult.results });
-      setResults(traceResult.results);
-      setStatus('done');
+      setTimeout(() => {
+        const traceResult = executeTrace(flow, parsedPayload);
+        console.log('Trace complete', { results: traceResult.results });
+        setResults(traceResult.results);
+        setStatus('done');
+      }, 300); // simulated delay to show button status
     } catch (err) {
       console.error('Trace error', err);
       setStatus('error');
@@ -84,6 +92,24 @@ export default function JsonEditor() {
 
   return (
     <div className="w-96 h-full flex flex-col gap-4 p-4">
+      <label htmlFor="flow-select" className="text-xs text-secondary">
+        Flow
+      </label>
+      <select
+        id="flow-select"
+        value={flow?.id ?? ''}
+        onChange={(e) => {
+          const selected = flows.find((f) => f.id === Number(e.target.value));
+          if (selected) setFlow(selected);
+        }}
+        className="bg-card text-white border border-border rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        {flows.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.name}
+          </option>
+        ))}
+      </select>
       <label htmlFor="json-editor" className="text-xs text-secondary">
         Event Payload
       </label>
