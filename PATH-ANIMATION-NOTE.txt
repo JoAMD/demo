@@ -1,0 +1,7 @@
+Path animation decision logged.
+
+See: .planning/CONCERNS.md → "Path Animation: Looping → Static"
+Phase 2 UI-SPEC, Animation section.
+
+Looping (marching ants) chosen for v1. Revisit if users report distraction.
+Switch to static = remove @keyframes, keep stroke color. 1 CSS rule.

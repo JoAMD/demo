@@ -1,7 +1,7 @@
 ---
 phase: 2
 slug: trace-ui-inspector
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-04
@@ -50,13 +50,13 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 | 1.5 |
-| Label | 12px | 500 | 1.4 |
+| Label | 12px | 400 | 1.4 |
 | Heading | 16px | 600 | 1.2 |
 | Display | 20px | 600 | 1.2 |
 
 Usage:
 - **Body (14/400/1.5):** Step description text, email preview body, JSON editor content, tooltip text
-- **Label (12/500/1.4):** Panel titles, field labels, "Run a trace to see results" body, PASS/FAIL pill text, breadcrumb labels
+- **Label (12/400/1.4):** Panel titles, field labels, "Run a trace to see results" body, PASS/FAIL pill text, breadcrumb labels
 - **Heading (16/600/1.2):** Panel header titles ("Step Inspector", "JSON Editor"), step name in inspector
 - **Display (20/600/1.2):** App header flow name, empty state heading ("Run a trace to see results")
 
@@ -86,6 +86,15 @@ Text hierarchy:
 
 ---
 
+## Visual Hierarchy
+
+Primary anchor: animated orange trace path on canvas — draws eye first.
+Secondary: Step Inspector detail card — active step border + PASS/FAIL pill.
+Tertiary: JSON Editor — muted, user interacts but doesn't stare.
+Panel reopen button: labeled with `aria-label="Open {panel name}"` for accessibility.
+
+---
+
 ## Copywriting Contract
 
 | Element | Copy |
@@ -109,24 +118,34 @@ Additional copy:
 
 > Shape-rooted UI state coverage per the UI-consideration probe taxonomy.
 
-Applicable state considerations resolved: 7 covered, 0 backstop, 0 unresolved
+Applicable state considerations resolved: 14 covered, 2 backstop, 0 unresolved
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| empty | Step inspector (no trace run yet) | ✅ covered | Empty state heading "Run a trace to see results" + body text displayed in full-height panel |
-| empty | Contact selector (no contacts loaded) | ✅ covered | Placeholder "Select a test contact..." with empty dropdown list |
-| loading | Run Trace button | ✅ covered | Button shows "Running trace…" with subtle pulse animation (CSS keyframe) during execution |
-| loading | Canvas path | ✅ covered | No path shown until trace completes; canvas stays in neutral state |
-| error | Trace execution | ✅ covered | "Trace failed — check payload and try again" displayed below JSON editor |
-| error | JSON parse | ✅ covered | Inline error below textarea (already implemented in Phase 1) |
-| populated | Step inspector (trace complete) | ✅ covered | One step at a time, full detail card: step name, PASS/FAIL pill, resolved values, email preview or split breakdown |
-| populated | Canvas (trace complete) | ✅ covered | Orange dashed animated path highlights executed nodes; unexecuted nodes grayed via `text-secondary` |
-| long-text | Email preview body | ✅ backstop | Email body rendered inside scrollable container (`overflow-y-auto max-h-full`); long subject wraps with `line-clamp-2` |
-| long-text | Step description / split expression | ✅ backstop | Text wraps within panel width; no truncation — inspector panel is wide enough (320px min) |
+| empty | Step inspector | ✅ covered | Empty state heading "Run a trace to see results" + body text in full-height panel |
+| empty | Contact selector | ✅ covered | Placeholder "Select a test contact..." with empty dropdown list |
+| empty | JSON editor | ✅ covered | Textarea empty on mount; user types payload |
+| loading | Run Trace button | ✅ covered | Button shows "Running trace…" with subtle pulse animation (CSS keyframe) |
+| loading | Canvas path | ✅ covered | No path shown until trace completes; canvas stays neutral |
+| loading | Step inspector | ✅ covered | Inspector shows empty state until trace completes; no skeleton needed |
+| error | Trace execution | ✅ covered | "Trace failed — check payload and try again" below JSON editor |
+| error | JSON parse | ✅ covered | Inline error below textarea (Phase 1) |
+| populated | Step inspector | ✅ covered | One step at a time: step name, PASS/FAIL pill, resolved values, email preview or split breakdown |
+| populated | Canvas (trace complete) | ✅ covered | Orange dashed animated path highlights executed nodes; unexecuted grayed via `text-secondary` |
+| long-text | Email preview body | 🧪 backstop | Scrollable container (`overflow-y-auto max-h-full`); long subject wraps `line-clamp-2` |
+| long-text | Step description / split expression | 🧪 backstop | Text wraps within panel width (320px min); no truncation |
+| long-text | Contact selector dropdown | ✅ covered | Dropdown truncates long names with ellipsis; full name in tooltip |
 | overflow | Step inspector panel | ✅ covered | Single step view avoids list overflow; email preview scrolls within panel |
-| overflow | JSON editor | ✅ covered | Textarea scrolls vertically; existing behavior from Phase 1 |
-| zero-one-many | Steps in trace result | ✅ covered | Zero steps = empty state; one step = same detail view; many steps = prev/next navigation, same single-step card |
-| zero-one-many | Split conditions | ✅ covered | Zero = no split node selected; one = condition displayed inline; many = stacked condition list in inspector |
+| overflow | JSON editor | ✅ covered | Textarea scrolls vertically (Phase 1) |
+| zero-one-many | Steps in trace result | ✅ covered | Zero = empty state; one = same detail view; many = prev/next navigation |
+| zero-one-many | Split conditions | ✅ covered | Zero = no split selected; one = inline; many = stacked list in inspector |
+
+**N/A categories (not applicable to this UI):**
+- Contact selector loading/error/partial: contacts are local fixtures, no async load or failure
+- Run Trace button long-text: fixed copy "Run Trace", no dynamic text
+- Canvas path unclassified: visual graph; state coverage covered by loading/populated rows
+- Email preview empty/loading/error/partial: email HTML is in trace result, deterministic, no async
+- Split conditions loading/error: conditions are in trace result, deterministic
 
 ---
 
@@ -176,11 +195,11 @@ Only active when step inspector is visible and a trace has been run.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-08-04
