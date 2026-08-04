@@ -93,7 +93,7 @@
 
 | Phase | Status | Requirements | Plans |
 |-------|--------|-------------|-------|
-| 1: Foundation & Trace Engine | ○ | 7 | 5 |
+| 1: Foundation & Trace Engine | ✓ | 7 | 5 |
 | 2: Trace UI & Inspector | ○ | 7 | 7 |
 | 3: Split Popover & Polish | ○ | 4 | 5 |
 | **Total** | | **18** | **17** |
