@@ -1,0 +1,126 @@
+import { useState, useCallback } from 'react';
+import type { ReactNode } from 'react';
+
+interface TraceDockProps {
+  canvas: ReactNode;
+  inspector: ReactNode;
+  editor: ReactNode;
+}
+
+export default function TraceDock({ canvas, inspector, editor }: TraceDockProps) {
+  const [inspectorWidth, setInspectorWidth] = useState(320);
+  const [editorWidth, setEditorWidth] = useState(384);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [editorOpen, setEditorOpen] = useState(true);
+
+  const handleInspectorResize = useCallback((e: MouseEvent) => {
+    const startX = e.clientX;
+    const startWidth = inspectorWidth;
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = moveEvent.clientX - startX;
+      const newWidth = Math.min(480, Math.max(240, startWidth + delta));
+      setInspectorWidth(newWidth);
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = 'col-resize';
+  }, [inspectorWidth]);
+
+  const handleEditorResize = useCallback((e: MouseEvent) => {
+    const startX = e.clientX;
+    const startWidth = editorWidth;
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = startX - moveEvent.clientX;
+      const newWidth = Math.min(640, Math.max(280, startWidth + delta));
+      setEditorWidth(newWidth);
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = 'col-resize';
+  }, [editorWidth]);
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* Canvas */}
+      <div className="flex-1 min-w-0">{canvas}</div>
+
+      {/* Inspector resize handle */}
+      {inspectorOpen && (
+        <div
+          role="separator"
+          aria-label="Resize step inspector"
+          className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
+          onMouseDown={() => {/* handled by document listener */}}
+          onClick={(e) => {
+            // Trigger resize via synthetic event
+            handleInspectorResize(e.nativeEvent);
+          }}
+        />
+      )}
+
+      {/* Inspector */}
+      {inspectorOpen && (
+        <div
+          className="h-full flex flex-col border-l border-[#2a2a2a]"
+          style={{ width: inspectorWidth }}
+        >
+          <div className="h-8 flex items-center justify-between px-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
+            <span className="text-xs text-[#a1a1aa]">Step Inspector</span>
+            <button
+              type="button"
+              onClick={() => setInspectorOpen(false)}
+              className="text-[#a1a1aa] hover:text-white text-xs"
+              aria-label="Close panel"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">{inspector}</div>
+        </div>
+      )}
+
+      {/* Editor resize handle */}
+      {editorOpen && (
+        <div
+          role="separator"
+          aria-label="Resize JSON editor"
+          className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
+          onClick={(e) => {
+            handleEditorResize(e.nativeEvent);
+          }}
+        />
+      )}
+
+      {/* Editor */}
+      {editorOpen && (
+        <div
+          className="h-full flex flex-col border-l border-[#2a2a2a]"
+          style={{ width: editorWidth }}
+        >
+          <div className="h-8 flex items-center justify-between px-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
+            <span className="text-xs text-[#a1a1aa]">JSON Editor</span>
+            <button
+              type="button"
+              onClick={() => setEditorOpen(false)}
+              className="text-[#a1a1aa] hover:text-white text-xs"
+              aria-label="Close panel"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">{editor}</div>
+        </div>
+      )}
+    </div>
+  );
+}
