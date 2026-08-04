@@ -3,7 +3,7 @@ import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { Step, StepResult, Filter, FilterGroup } from '../engine/types';
 
-function findStep(steps: Step[], id: string): Step | null {
+export function findStep(steps: Step[], id: string): Step | null {
   for (const s of steps) {
     if (s.id === id) return s;
     if (s.kind === 'split') return findInSplit(s, id);
