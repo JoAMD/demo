@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { ReactFlow, type Node, type Edge, Position } from '@xyflow/react';
+import { useCallback, useMemo } from 'react';
+import { ReactFlow, type Node, type Edge, Position, type NodeMouseHandler } from '@xyflow/react';
 import dagre from '@dagrejs/dagre';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -24,8 +24,12 @@ function stepLabel(step: Step): string {
   }
 }
 
-// Flow tree → React Flow nodes/edges with path highlight
-function flowToGraph(flow: Flow, executedIds: Set<string>): { nodes: Node[]; edges: Edge[] } {
+// Flow tree → React Flow nodes/edges with path highlight and active step
+function flowToGraph(
+  flow: Flow,
+  executedIds: Set<string>,
+  selectedStep: string | null,
+): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -33,7 +37,12 @@ function flowToGraph(flow: Flow, executedIds: Set<string>): { nodes: Node[]; edg
     nodes.push({
       id: step.id,
       position: { x: 0, y: 0 },
-      data: { label: stepLabel(step), kind: step.kind, executed: executedIds.has(step.id) },
+      data: {
+        label: stepLabel(step),
+        kind: step.kind,
+        executed: executedIds.has(step.id),
+        isActive: step.id === selectedStep,
+      },
       type: 'step',
     });
   }
@@ -111,16 +120,26 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
 export default function FlowCanvas() {
   const flow = useTraceStore(useShallow((s) => s.flow));
   const results = useTraceStore(useShallow((s) => s.results));
+  const selectedStep = useTraceStore(useShallow((s) => s.selectedStep));
+  const setSelectedStep = useTraceStore((s) => s.setSelectedStep);
 
   // Derived set of executed step IDs — memoized on results
   const executedIds = useMemo(() => new Set(results.map((r) => r.stepId)), [results]);
 
-  // Memoize layout computation — only recomputes when flow or results change
+  // Memoize layout computation — only recomputes when flow, results, or selection change
   const { nodes, edges } = useMemo(() => {
     if (!flow) return { nodes: [], edges: [] };
-    const graph = flowToGraph(flow, executedIds);
+    const graph = flowToGraph(flow, executedIds, selectedStep);
     return getLayoutedElements(graph.nodes, graph.edges);
-  }, [flow, executedIds]);
+  }, [flow, executedIds, selectedStep]);
+
+  // D-04: Clicking a node jumps the step inspector to that step
+  const onNodeClick: NodeMouseHandler = useCallback(
+    (_, node) => {
+      setSelectedStep(node.id);
+    },
+    [setSelectedStep],
+  );
 
   // Empty state: "No flow loaded" centered
   if (!flow) {
@@ -138,6 +157,7 @@ export default function FlowCanvas() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        onNodeClick={onNodeClick}
         fitView
         minZoom={0.2}
         maxZoom={2.0}
