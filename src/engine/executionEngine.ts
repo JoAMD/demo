@@ -3,7 +3,7 @@
 // D-07: Loose type coercion before comparison
 // D-08: Pure function executeTrace(flow, payload) → TraceResult
 
-import type { Flow, Step, StepResult, Filter, FilterGroup, TraceResult } from './types';
+import type { Flow, Step, StepResult, Filter, FilterGroup, TraceResult, ConditionResult } from './types';
 
 export function executeTrace(
   flow: Flow,
@@ -40,13 +40,23 @@ function evaluateStep(
 ): StepResult {
   switch (step.kind) {
     case 'split': {
-      const passed = evaluateFilterGroup(step.filters, payload);
-      return {
-        stepId: step.id,
-        kind: 'split',
-        passed: true,
-        branchTaken: passed ? 'yes' : 'no',
-      };
+      try {
+        const { passed, conditionResults } = evaluateFilterGroupWithResults(step.filters, payload);
+        return {
+          stepId: step.id,
+          kind: 'split',
+          passed: true,
+          branchTaken: passed ? 'yes' : 'no',
+          conditionResults,
+        };
+      } catch (e) {
+        return {
+          stepId: step.id,
+          kind: 'split',
+          passed: false,
+          error: e instanceof Error ? e.message : 'Split evaluation failed',
+        };
+      }
     }
     case 'email': {
       // Bounce failure only on Welcome Series (flow 1)
@@ -95,6 +105,33 @@ function evaluateFilterGroup(
   return group.logic === 'and'
     ? results.every(Boolean)
     : results.some(Boolean);
+}
+
+// D-03: Per-condition results for split popover
+function evaluateFilterGroupWithResults(
+  group: FilterGroup,
+  payload: Record<string, unknown>
+): { passed: boolean; conditionResults: ConditionResult[] } {
+  const conditionResults: ConditionResult[] = [];
+
+  for (const condition of group.conditions) {
+    if ('logic' in condition) {
+      // Nested FilterGroup — recurse and flatten
+      const nested = evaluateFilterGroupWithResults(condition, payload);
+      conditionResults.push(...nested.conditionResults);
+    } else {
+      // Leaf filter — record name, resolved value, pass/fail
+      const value = getNestedValue(payload, condition.name);
+      const passed = evaluateFilter(condition, payload);
+      conditionResults.push({ name: condition.name, value, passed });
+    }
+  }
+
+  const passed = group.logic === 'and'
+    ? conditionResults.every((r) => r.passed)
+    : conditionResults.some((r) => r.passed);
+
+  return { passed, conditionResults };
 }
 
 function evaluateFilter(

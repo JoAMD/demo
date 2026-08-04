@@ -28,11 +28,19 @@ export type Flow = {
 };
 
 // D-02: Flat StepResult with optional branchTaken
+// D-03: conditionResults for split steps
+export type ConditionResult = {
+  name: string;
+  value: unknown;
+  passed: boolean;
+};
+
 export type StepResult = {
   stepId: string;
   kind: Step['kind'];
   passed: boolean;
   branchTaken?: 'yes' | 'no';
+  conditionResults?: ConditionResult[];
   error?: string;
 };
 
