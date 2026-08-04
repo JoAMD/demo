@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import FlowCanvas from './components/FlowCanvas';
 import JsonEditor from './components/JsonEditor';
 import StepInspector from './components/StepInspector';
+import ContactSelector from './components/ContactSelector';
 import TraceDock from './components/TraceDock';
 import { executeTrace } from './engine/executionEngine';
 import { flows } from './mocks/fixtures/flows';
@@ -44,6 +45,8 @@ export default function App() {
         <h1 className="text-sm font-medium text-white">
           {flow?.name ?? 'Nitrosend Simulator'}
         </h1>
+
+        <ContactSelector />
 
         <button
           type="button"
