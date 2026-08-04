@@ -10,13 +10,17 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/dagre": "^0.7.54",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^4.7.0",
     "typescript": "^7.0.2",
     "vite": "^7.3.6",
     "vitest": "^3.2.7"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.1.0",
+    "@xyflow/react": "^12.11.2",
     "msw": "^2.15.0",
     "zustand": "^5.0.14"
   }
