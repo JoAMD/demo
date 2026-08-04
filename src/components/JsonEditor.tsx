@@ -9,10 +9,11 @@ export default function JsonEditor() {
   const [jsonText, setJsonText] = useState(() => JSON.stringify(payloads[0], null, 2));
   const [parseError, setParseError] = useState<string | null>(null);
 
-  const { payload, flow, setFlow, setPayload } = useTraceStore(
+  const { payload, flow, selectedContact, setFlow, setPayload } = useTraceStore(
     useShallow((state) => ({
       payload: state.payload,
       flow: state.flow,
+      selectedContact: state.selectedContact,
       setFlow: state.setFlow,
       setPayload: state.setPayload,
     }))
@@ -63,8 +64,12 @@ export default function JsonEditor() {
             if (selected.trigger.kind === 'trigger') {
               const matchingPayload = payloadsByEvent[selected.trigger.event];
               if (matchingPayload) {
-                setPayload(matchingPayload);
-                setJsonText(JSON.stringify(matchingPayload, null, 2));
+                // ponytail: preserve selected contact across flow switches; fixtures omit contact
+                const merged = selectedContact
+                  ? { ...matchingPayload, contact: { ...selectedContact } }
+                  : matchingPayload;
+                setPayload(merged);
+                setJsonText(JSON.stringify(merged, null, 2));
               }
             }
           }

@@ -15,6 +15,22 @@ function findInSplit(split: Extract<Step, { kind: 'split' }>, id: string): Step 
   return findStep(split.yes, id) ?? findStep(split.no, id);
 }
 
+function stepTitle(step: Step): string {
+  switch (step.kind) {
+    case 'email': return step.subject;
+    case 'split': {
+      const field = step.filters.conditions.find((condition) => !('logic' in condition));
+      const name = field && !('logic' in field)
+        ? field.name.split('.').pop()?.replace(/_/g, ' ')
+        : 'condition';
+      return `${name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Condition'} Split`;
+    }
+    case 'webhook': return `Webhook: ${step.url}`;
+    case 'sms': return `SMS: ${step.to}`;
+    case 'trigger': return step.action_name;
+  }
+}
+
 function StepContent({ step, result }: { step: Step; result: StepResult }) {
   const payload = useTraceStore(useShallow((s) => s.payload));
 
@@ -168,6 +184,9 @@ function SplitPreview({
         <span className="text-[12px] text-[#a1a1aa]">
           {conditions.length} condition{conditions.length !== 1 ? 's' : ''}
         </span>
+        <span className="text-[11px] text-[#f97316] uppercase">
+          {step.filters.logic}
+        </span>
       </div>
       {result.error && (
         <span className="text-[12px] text-[#ef4444]">{result.error}</span>
@@ -186,14 +205,14 @@ function SplitPreview({
               <span className="text-[#52525b]">
                 → {cr.value === undefined ? 'undefined' : String(cr.value)}
               </span>
-              <span
-                className={`text-[11px] rounded-full px-1.5 py-0.5 ${
-                  cr.passed
-                    ? 'bg-[#22c55e]/10 text-[#22c55e]'
-                    : 'bg-[#ef4444]/10 text-[#ef4444]'
-                }`}
-              >
-                {cr.passed ? 'PASS' : 'FAIL'}
+                <span
+                  className={`text-[11px] rounded-full px-1.5 py-0.5 border ${
+                    cr.passed
+                      ? 'border-[#60a5fa]/40 bg-[#60a5fa]/10 text-[#60a5fa]'
+                      : 'border-[#a1a1aa]/40 bg-[#a1a1aa]/10 text-[#a1a1aa]'
+                  }`}
+                >
+                  {cr.passed ? 'TRUE' : 'FALSE'}
               </span>
             </span>
           </div>
@@ -250,7 +269,7 @@ function StepDetail({
       onKeyDown={onKeyDown}
     >
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-[16px] font-semibold text-white">{step.id}</h3>
+        <h3 className="text-[16px] font-semibold text-white">{stepTitle(step)}</h3>
         <span className="text-[12px] text-[#a1a1aa] rounded-full px-2 py-0.5 bg-[#1e1e1e] border border-[#2a2a2a]">
           {step.kind}
         </span>
