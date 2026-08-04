@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState } from 'react';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
-import type { Step, StepResult } from '../engine/types';
+import type { Step, StepResult, Filter, FilterGroup } from '../engine/types';
 
 function findStep(steps: Step[], id: string): Step | null {
   for (const s of steps) {
@@ -44,6 +44,23 @@ function StepContent({ step, result }: { step: Step; result: StepResult }) {
 
 function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
   const [showRaw, setShowRaw] = useState(false);
+  const payload = useTraceStore(useShallow((s) => s.payload));
+
+  const resolvedSubject = step.subject.replace(/\{\{(.+?)\}\}/g, (_, path) => {
+    const val = path.split('.').reduce((obj: unknown, key: string) => {
+      if (obj === null || obj === undefined) return undefined;
+      return (obj as Record<string, unknown>)[key];
+    }, payload);
+    return val !== undefined ? String(val) : `{{${path.trim()}}}`;
+  });
+
+  const resolvedBody = step.body.replace(/\{\{(.+?)\}\}/g, (_, path) => {
+    const val = path.split('.').reduce((obj: unknown, key: string) => {
+      if (obj === null || obj === undefined) return undefined;
+      return (obj as Record<string, unknown>)[key];
+    }, payload);
+    return val !== undefined ? String(val) : `{{${path.trim()}}}`;
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -79,15 +96,41 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
         />
       ) : (
         <div className="flex-1 overflow-y-auto">
-          <h4 className="text-[16px] font-semibold text-white mb-2">
-            {step.subject}
-          </h4>
-          <div
-            className="text-[14px] text-[#a1a1aa]"
-            dangerouslySetInnerHTML={{ __html: step.body }}
-          />
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 my-4">
+            <h4 className="text-[16px] font-semibold text-gray-900 mb-2">
+              {resolvedSubject}
+            </h4>
+            <div
+              className="text-[14px] text-gray-700 whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: resolvedBody }}
+            />
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function FilterCondition({ condition, depth = 0 }: { condition: Filter | FilterGroup; depth?: number }) {
+  if ('logic' in condition) {
+    return (
+      <div className={`ml-${depth * 4}`}>
+        <span className="text-[11px] text-[#f97316] font-medium uppercase">
+          {condition.logic}
+        </span>
+        <div className="flex flex-col gap-1 mt-1">
+          {condition.conditions.map((c, i) => (
+            <FilterCondition key={i} condition={c} depth={depth + 1} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`flex items-center text-[14px] py-1 border-b border-[#2a2a2a] last:border-0 ml-${depth * 4}`}>
+      <span className="font-mono text-[#a1a1aa]">
+        {condition.name} {condition.predicate} {condition.value}
+      </span>
     </div>
   );
 }
@@ -104,28 +147,10 @@ function SplitPreview({
       <span className="text-[12px] bg-[#f97316] text-white rounded-full px-2 py-0.5 self-start">
         Branch: {result.branchTaken}
       </span>
-      {step.filters.map((filter) => (
-        <div
-          key={filter.name}
-          className="flex items-center justify-between text-[14px] py-1 border-b border-[#2a2a2a] last:border-0"
-        >
-          <span
-            className="font-mono text-[#a1a1aa]"
-            title={`Source: ${filter.name}`}
-          >
-            {filter.name} {filter.predicate} {filter.value}
-          </span>
-          <span
-            className={`text-[12px] rounded-full px-2 py-0.5 ${
-              result.passed
-                ? 'bg-[#22c55e]/10 text-[#22c55e]'
-                : 'bg-[#ef4444]/10 text-[#ef4444]'
-            }`}
-          >
-            {result.passed ? 'PASS' : 'FAIL'}
-          </span>
-        </div>
-      ))}
+      {result.error && (
+        <span className="text-[12px] text-[#ef4444]">{result.error}</span>
+      )}
+      <FilterCondition condition={step.filters} />
     </div>
   );
 }
@@ -147,7 +172,8 @@ function EmptyState() {
 function StepNotFound() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-4">
-      <p className="text-[14px] text-[#a1a1aa]">Step not found</p>
+      <p className="text-[14px] text-[#a1a1aa]">Step not in trace results</p>
+      <p className="text-[12px] text-[#52525b] mt-1">Run a trace or select an executed step</p>
     </div>
   );
 }
@@ -189,6 +215,11 @@ function StepDetail({
         >
           {result.passed ? 'PASS' : 'FAIL'}
         </span>
+        {result.error && (
+          <span className="text-[12px] text-[#ef4444] ml-2">
+            {result.error}
+          </span>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">

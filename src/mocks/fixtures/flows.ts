@@ -1,4 +1,4 @@
-import type { Flow } from '../../engine/types';
+import type { Flow, FilterGroup } from '../../engine/types';
 
 export const flows: Flow[] = [
   // Linear flow: trigger → email → email (3 steps, no splits)
@@ -43,9 +43,13 @@ export const flows: Flow[] = [
       {
         kind: 'split',
         id: 'step_3',
-        filters: [
-          { name: 'contact.engagement_rating', value: 'high', predicate: 'eq' },
-        ],
+        filters: {
+          logic: 'or',
+          conditions: [
+            { name: 'contact.engagement_rating', value: 'high', predicate: 'eq' },
+            { name: 'contact.engagement_rating', value: 'medium', predicate: 'eq' },
+          ],
+        },
         yes: [
           {
             kind: 'email',
@@ -81,16 +85,22 @@ export const flows: Flow[] = [
       {
         kind: 'split',
         id: 'step_6',
-        filters: [
-          { name: 'contact.tier', value: 'enterprise', predicate: 'eq' },
-        ],
+        filters: {
+          logic: 'and',
+          conditions: [
+            { name: 'contact.tier', value: 'enterprise', predicate: 'eq' },
+          ],
+        },
         yes: [
           {
             kind: 'split',
             id: 'step_7',
-            filters: [
-              { name: 'data.order_total', value: '500', predicate: 'gt' },
-            ],
+            filters: {
+              logic: 'and',
+              conditions: [
+                { name: 'data.order_total', value: '500', predicate: 'gt' },
+              ],
+            },
             yes: [
               {
                 kind: 'email',
@@ -113,9 +123,12 @@ export const flows: Flow[] = [
           {
             kind: 'split',
             id: 'step_10',
-            filters: [
-              { name: 'contact.tier', value: 'pro', predicate: 'eq' },
-            ],
+            filters: {
+              logic: 'and',
+              conditions: [
+                { name: 'contact.tier', value: 'pro', predicate: 'eq' },
+              ],
+            },
             yes: [
               {
                 kind: 'email',

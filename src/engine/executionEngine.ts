@@ -3,7 +3,7 @@
 // D-07: Loose type coercion before comparison
 // D-08: Pure function executeTrace(flow, payload) → TraceResult
 
-import type { Flow, Step, StepResult, Filter, TraceResult } from './types';
+import type { Flow, Step, StepResult, Filter, FilterGroup, TraceResult } from './types';
 
 export function executeTrace(
   flow: Flow,
@@ -12,14 +12,14 @@ export function executeTrace(
   const results: StepResult[] = [];
 
   // Process trigger first
-  results.push(evaluateStep(flow.trigger, payload));
+  results.push(evaluateStep(flow.trigger, payload, flow.id));
 
   // BFS queue initialized with main path steps
   const queue: Step[] = [...flow.steps];
 
   while (queue.length > 0) {
     const step = queue.shift()!;
-    const result = evaluateStep(step, payload);
+    const result = evaluateStep(step, payload, flow.id);
     results.push(result);
 
     // D-05: Enqueue ALL children from split yes/no arrays
@@ -35,17 +35,46 @@ export function executeTrace(
 
 function evaluateStep(
   step: Step,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  flowId: number
 ): StepResult {
   switch (step.kind) {
     case 'split': {
-      const passed = evaluateFilters(step.filters, payload);
+      const passed = evaluateFilterGroup(step.filters, payload);
       return {
         stepId: step.id,
         kind: 'split',
         passed: true,
         branchTaken: passed ? 'yes' : 'no',
       };
+    }
+    case 'email': {
+      // Bounce failure only on Welcome Series (flow 1)
+      if (flowId === 1) {
+        const dataContact = getNestedValue(payload, 'data.contact') as Record<string, unknown> | undefined;
+        const contact = getNestedValue(payload, 'contact') as Record<string, unknown> | undefined;
+        const bounced = (dataContact?.bounced ?? contact?.bounced) as boolean | undefined;
+        if (bounced) {
+          return { stepId: step.id, kind: 'email', passed: false, error: 'Email bounced — delivery failed' };
+        }
+      }
+      const unresolved = step.body.match(/\{\{(.+?)\}\}/g);
+      if (unresolved) {
+        for (const match of unresolved) {
+          const path = match.slice(2, -2).trim();
+          const val = path.split('.').reduce<unknown>((obj, key) => {
+            if (obj === null || obj === undefined) return undefined;
+            return (obj as Record<string, unknown>)[key];
+          }, payload);
+          if (val === undefined) {
+            return { stepId: step.id, kind: 'email', passed: false, error: `Template variable not found: ${path}` };
+          }
+        }
+      }
+      return { stepId: step.id, kind: 'email', passed: true };
+    }
+    case 'webhook': {
+      return { stepId: step.id, kind: 'webhook', passed: true };
     }
     default:
       return { stepId: step.id, kind: step.kind, passed: true };
@@ -54,21 +83,33 @@ function evaluateStep(
 
 // D-06: Inline switch on predicate type
 // D-07: Loose coercion before comparison
-function evaluateFilters(
-  filters: Filter[],
+function evaluateFilterGroup(
+  group: FilterGroup,
   payload: Record<string, unknown>
 ): boolean {
-  return filters.every((filter) => {
-    const value = getNestedValue(payload, filter.name);
-    switch (filter.predicate) {
-      case 'eq': return String(value) === String(filter.value);
-      case 'neq': return String(value) !== String(filter.value);
-      case 'gt': return Number(value) > Number(filter.value);
-      case 'lt': return Number(value) < Number(filter.value);
-      case 'contains': return String(value).includes(String(filter.value));
-      default: return false;
-    }
-  });
+  const results = group.conditions.map((condition) =>
+    'logic' in condition
+      ? evaluateFilterGroup(condition, payload)
+      : evaluateFilter(condition, payload)
+  );
+  return group.logic === 'and'
+    ? results.every(Boolean)
+    : results.some(Boolean);
+}
+
+function evaluateFilter(
+  filter: Filter,
+  payload: Record<string, unknown>
+): boolean {
+  const value = getNestedValue(payload, filter.name);
+  switch (filter.predicate) {
+    case 'eq':       return String(value) === String(filter.value);
+    case 'neq':      return String(value) !== String(filter.value);
+    case 'gt':       return Number(value) > Number(filter.value);
+    case 'lt':       return Number(value) < Number(filter.value);
+    case 'contains': return String(value).includes(String(filter.value));
+    default:         return false;
+  }
 }
 
 // Path traversal — split by '.' only, no __proto__ access

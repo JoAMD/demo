@@ -17,7 +17,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
     const startX = e.clientX;
     const startWidth = inspectorWidth;
     const onMouseMove = (moveEvent: MouseEvent) => {
-      const delta = moveEvent.clientX - startX;
+      const delta = startX - moveEvent.clientX;
       const newWidth = Math.min(480, Math.max(240, startWidth + delta));
       setInspectorWidth(newWidth);
     };
@@ -52,7 +52,31 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Canvas */}
-      <div className="flex-1 min-w-0">{canvas}</div>
+      <div className="flex-1 min-w-0 h-full relative">
+        {canvas}
+        {(!inspectorOpen || !editorOpen) && (
+          <div className="absolute top-2 right-2 flex gap-1 z-10">
+            {!inspectorOpen && (
+              <button
+                type="button"
+                onClick={() => setInspectorOpen(true)}
+                className="text-[11px] px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#a1a1aa] hover:text-white rounded"
+              >
+                Inspector
+              </button>
+            )}
+            {!editorOpen && (
+              <button
+                type="button"
+                onClick={() => setEditorOpen(true)}
+                className="text-[11px] px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#a1a1aa] hover:text-white rounded"
+              >
+                Editor
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Inspector resize handle */}
       {inspectorOpen && (
@@ -60,11 +84,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
           role="separator"
           aria-label="Resize step inspector"
           className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
-          onMouseDown={() => {/* handled by document listener */}}
-          onClick={(e) => {
-            // Trigger resize via synthetic event
-            handleInspectorResize(e.nativeEvent);
-          }}
+          onMouseDown={(e) => handleInspectorResize(e.nativeEvent)}
         />
       )}
 
@@ -95,9 +115,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
           role="separator"
           aria-label="Resize JSON editor"
           className="w-1 bg-[#2a2a2a] hover:bg-[#f97316] cursor-col-resize transition-colors"
-          onClick={(e) => {
-            handleEditorResize(e.nativeEvent);
-          }}
+          onMouseDown={(e) => handleEditorResize(e.nativeEvent)}
         />
       )}
 
@@ -108,7 +126,7 @@ export default function TraceDock({ canvas, inspector, editor }: TraceDockProps)
           style={{ width: editorWidth }}
         >
           <div className="h-8 flex items-center justify-between px-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
-            <span className="text-xs text-[#a1a1aa]">JSON Editor</span>
+            <span className="text-xs text-[#a1a1aa]">Test data</span>
             <button
               type="button"
               onClick={() => setEditorOpen(false)}

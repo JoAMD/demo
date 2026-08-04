@@ -4,7 +4,7 @@ import dagre from '@dagrejs/dagre';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { StepNode } from './StepNode';
-import type { Flow, Step } from '../engine/types';
+import type { Flow, Step, FilterGroup } from '../engine/types';
 
 const nodeTypes = { step: StepNode };
 
@@ -12,11 +12,15 @@ const nodeTypes = { step: StepNode };
 const ACCENT = '#f97316';
 const MUTED = '#2a2a2a';
 
+function countConditions(group: FilterGroup): number {
+  return group.conditions.length;
+}
+
 // D-14: Simple labeled box — label derived from step kind
 function stepLabel(step: Step): string {
   switch (step.kind) {
     case 'email': return step.subject;
-    case 'split': return `Split (${step.filters.length} conditions)`;
+    case 'split': return `Split (${step.filters.logic}: ${countConditions(step.filters)} conditions)`;
     case 'webhook': return step.url;
     case 'sms': return step.message;
     case 'trigger': return step.event;
@@ -47,13 +51,17 @@ function flowToGraph(
     });
   }
 
-  function addEdge(sourceId: string, targetId: string) {
+  function addEdge(sourceId: string, targetId: string, label?: string) {
     const executed = executedIds.has(sourceId) && executedIds.has(targetId);
     edges.push({
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
       animated: executed,
+      label: label,
+      labelStyle: { fill: '#a1a1aa', fontSize: 10 },
+      labelBgStyle: { fill: '#1a1a1a', fillOpacity: 0.8 },
+      labelBgPadding: [4, 2] as [number, number],
       style: executed
         ? { stroke: ACCENT, strokeWidth: 2 }
         : { stroke: MUTED, strokeWidth: 1 },
@@ -64,12 +72,12 @@ function flowToGraph(
   function traverseChildren(step: Step) {
     if (step.kind === 'split') {
       step.yes.forEach((child) => {
-        addEdge(step.id, child.id);
+        addEdge(step.id, child.id, 'yes');
         addNode(child);
         traverseChildren(child);
       });
       step.no.forEach((child) => {
-        addEdge(step.id, child.id);
+        addEdge(step.id, child.id, 'no');
         addNode(child);
         traverseChildren(child);
       });
@@ -136,9 +144,11 @@ export default function FlowCanvas() {
   // D-04: Clicking a node jumps the step inspector to that step
   const onNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
-      setSelectedStep(node.id);
+      if (executedIds.has(node.id)) {
+        setSelectedStep(node.id);
+      }
     },
-    [setSelectedStep],
+    [setSelectedStep, executedIds],
   );
 
   // Empty state: "No flow loaded" centered
@@ -152,7 +162,7 @@ export default function FlowCanvas() {
 
   // D-15: fitView on load, zoom 0.2–2.0
   return (
-    <div className="flex-1 bg-primary min-h-0">
+    <div className="flex-1 bg-primary min-h-0" style={{ height: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

@@ -105,7 +105,7 @@ describe('executeTrace', () => {
     const noEmail: Step = { kind: 'email', id: 'email_no', subject: 'No path', body: '' };
     const split: Step = {
       kind: 'split', id: 'split_1',
-      filters: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }],
+      filters: { logic: 'and', conditions: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }] },
       yes: [yesEmail],
       no: [noEmail],
     };
@@ -126,7 +126,7 @@ describe('executeTrace', () => {
   it('split with eq predicate: "cart_abandoned" eq "cart_abandoned" → yes branch', () => {
     const split: Step = {
       kind: 'split', id: 'split_eq',
-      filters: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }],
+      filters: { logic: 'and', conditions: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }] },
       yes: [{ kind: 'email', id: 'yes_e', subject: '', body: '' }],
       no: [{ kind: 'email', id: 'no_e', subject: '', body: '' }],
     };
@@ -138,7 +138,7 @@ describe('executeTrace', () => {
   it('split with gt predicate: numeric comparison coerces to Number before compare', () => {
     const split: Step = {
       kind: 'split', id: 'split_gt',
-      filters: [{ name: 'amount', value: '100', predicate: 'gt' }],
+      filters: { logic: 'and', conditions: [{ name: 'amount', value: '100', predicate: 'gt' }] },
       yes: [{ kind: 'email', id: 'yes_gt', subject: '', body: '' }],
       no: [{ kind: 'email', id: 'no_gt', subject: '', body: '' }],
     };
@@ -151,7 +151,7 @@ describe('executeTrace', () => {
   it('split with contains predicate: substring match on string values', () => {
     const split: Step = {
       kind: 'split', id: 'split_contains',
-      filters: [{ name: 'email', value: 'gmail', predicate: 'contains' }],
+      filters: { logic: 'and', conditions: [{ name: 'email', value: 'gmail', predicate: 'contains' }] },
       yes: [{ kind: 'email', id: 'yes_c', subject: '', body: '' }],
       no: [{ kind: 'email', id: 'no_c', subject: '', body: '' }],
     };
@@ -163,7 +163,7 @@ describe('executeTrace', () => {
   it('empty payload with split → filter fails → no branch taken', () => {
     const split: Step = {
       kind: 'split', id: 'split_empty',
-      filters: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }],
+      filters: { logic: 'and', conditions: [{ name: 'event', value: 'cart_abandoned', predicate: 'eq' }] },
       yes: [{ kind: 'email', id: 'yes_e', subject: '', body: '' }],
       no: [{ kind: 'email', id: 'no_e', subject: '', body: '' }],
     };
@@ -175,7 +175,7 @@ describe('executeTrace', () => {
   it('all StepResults have correct stepId and kind matching source step', () => {
     const split: Step = {
       kind: 'split', id: 'split_chk',
-      filters: [{ name: 'x', value: '1', predicate: 'eq' }],
+      filters: { logic: 'and', conditions: [{ name: 'x', value: '1', predicate: 'eq' }] },
       yes: [{ kind: 'email', id: 'e1', subject: '', body: '' }],
       no: [],
     };

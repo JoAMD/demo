@@ -3,13 +3,15 @@ import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { flows } from '../mocks/fixtures/flows';
 import { payloads } from '../mocks/fixtures/payloads';
+import ContactSelector from './ContactSelector';
 
 export default function JsonEditor() {
   const [jsonText, setJsonText] = useState(() => JSON.stringify(payloads[0], null, 2));
   const [parseError, setParseError] = useState<string | null>(null);
 
-  const { flow, setFlow, setPayload } = useTraceStore(
+  const { payload, flow, setFlow, setPayload } = useTraceStore(
     useShallow((state) => ({
+      payload: state.payload,
       flow: state.flow,
       setFlow: state.setFlow,
       setPayload: state.setPayload,
@@ -19,6 +21,14 @@ export default function JsonEditor() {
   useEffect(() => {
     if (!flow && flows.length > 0) setFlow(flows[0]);
   }, [flow, setFlow]);
+
+  useEffect(() => {
+    const text = JSON.stringify(payload, null, 2);
+    setJsonText((prev) => {
+      if (prev === text) return prev;
+      return text;
+    });
+  }, [payload]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -43,6 +53,7 @@ export default function JsonEditor() {
 
   return (
     <div className="h-full flex flex-col gap-4 p-4">
+      <ContactSelector />
       <label htmlFor="flow-select" className="text-xs text-secondary">
         Flow
       </label>

@@ -25,9 +25,11 @@ export default function ContactSelector() {
       if (!contact) return;
 
       const newPayload = { ...payload };
+      const contactObj = { ...(newPayload.contact as Record<string, unknown> || {}) };
       Object.entries(contact).forEach(([key, value]) => {
-        newPayload[`contact.${key}`] = value;
+        contactObj[key] = value;
       });
+      newPayload.contact = contactObj;
       setPayload(newPayload);
       setSelectedContact(contact);
     },

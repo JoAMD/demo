@@ -22,10 +22,10 @@ function StepNodeComponent({ data }: NodeProps) {
     .join(' ');
 
   return (
-    <div className={nodeClasses}>
+    <div className={nodeClasses} style={{ width: 172 }}>
       <Handle type="target" position={Position.Top} />
-      <div className="font-medium">{label}</div>
-      <div className="text-xs text-[#a1a1aa]">{kind}</div>
+      <div className="font-medium text-center truncate">{label}</div>
+      <div className="text-xs text-[#a1a1aa] text-center">{kind}</div>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

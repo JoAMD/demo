@@ -2,7 +2,7 @@
 
 export type Step =
   | { kind: 'email'; id: string; subject: string; body: string }
-  | { kind: 'split'; id: string; filters: Filter[]; yes: Step[]; no: Step[] }
+  | { kind: 'split'; id: string; filters: FilterGroup; yes: Step[]; no: Step[] }
   | { kind: 'webhook'; id: string; url: string; method: string }
   | { kind: 'sms'; id: string; to: string; message: string }
   | { kind: 'trigger'; id: string; event: string; action_name: string };
@@ -11,6 +11,11 @@ export type Filter = {
   name: string;
   value: string;
   predicate: 'eq' | 'neq' | 'gt' | 'lt' | 'contains';
+};
+
+export type FilterGroup = {
+  logic: 'and' | 'or';
+  conditions: (Filter | FilterGroup)[];
 };
 
 // Matches ROADMAP.md API reference exactly
@@ -28,6 +33,7 @@ export type StepResult = {
   kind: Step['kind'];
   passed: boolean;
   branchTaken?: 'yes' | 'no';
+  error?: string;
 };
 
 // D-08: TraceResult
