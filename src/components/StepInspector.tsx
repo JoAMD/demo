@@ -140,6 +140,15 @@ function FilterCondition({ condition, depth = 0 }: { condition: Filter | FilterG
   );
 }
 
+function flattenConditions(group: FilterGroup): Filter[] {
+  const out: Filter[] = [];
+  for (const c of group.conditions) {
+    if ('logic' in c) out.push(...flattenConditions(c));
+    else out.push(c);
+  }
+  return out;
+}
+
 function SplitPreview({
   step,
   result,
@@ -147,15 +156,49 @@ function SplitPreview({
   step: Extract<Step, { kind: 'split' }>;
   result: StepResult;
 }) {
+  const filters = flattenConditions(step.filters);
+  const conditions = result.conditionResults ?? [];
+
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[12px] bg-[#f97316] text-white rounded-full px-2 py-0.5 self-start">
-        Branch: {result.branchTaken}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] bg-[#f97316] text-white rounded-full px-2 py-0.5">
+          Branch: {result.branchTaken}
+        </span>
+        <span className="text-[12px] text-[#a1a1aa]">
+          {conditions.length} condition{conditions.length !== 1 ? 's' : ''}
+        </span>
+      </div>
       {result.error && (
         <span className="text-[12px] text-[#ef4444]">{result.error}</span>
       )}
-      <FilterCondition condition={step.filters} />
+      {conditions.map((cr, i) => {
+        const filter = filters[i];
+        return (
+          <div
+            key={`${cr.name}-${i}`}
+            className="flex items-center justify-between text-[13px] py-1.5 border-b border-[#2a2a2a] last:border-0"
+          >
+            <span className="font-mono text-[#a1a1aa]">
+              {cr.name} {filter?.predicate} {filter?.value}
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[#52525b]">
+                → {cr.value === undefined ? 'undefined' : String(cr.value)}
+              </span>
+              <span
+                className={`text-[11px] rounded-full px-1.5 py-0.5 ${
+                  cr.passed
+                    ? 'bg-[#22c55e]/10 text-[#22c55e]'
+                    : 'bg-[#ef4444]/10 text-[#ef4444]'
+                }`}
+              >
+                {cr.passed ? 'PASS' : 'FAIL'}
+              </span>
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
