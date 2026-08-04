@@ -13,11 +13,13 @@ export interface TraceState {
   selectedStep: string | null;
   stepCount: number;
   currentStepIndex: number;
+  selectedContact: Record<string, unknown> | null;
   setFlow: (flow: Flow | null) => void;
   setPayload: (payload: Record<string, unknown>) => void;
   setResults: (results: StepResult[]) => void;
   setStatus: (status: TraceStatus) => void;
   setSelectedStep: (id: string | null) => void;
+  setSelectedContact: (contact: Record<string, unknown> | null) => void;
   nextStep: () => void;
   prevStep: () => void;
 }
@@ -30,8 +32,10 @@ export const useTraceStore = create<TraceState>((set, get) => ({
   selectedStep: null,
   stepCount: 0,
   currentStepIndex: 0,
+  selectedContact: null,
   setFlow: (flow) => set({ flow }),
   setPayload: (payload) => set({ payload }),
+  setSelectedContact: (selectedContact) => set({ selectedContact }),
   setResults: (results) => {
     const firstId = results[0]?.stepId ?? null;
     set({ results, stepCount: results.length, currentStepIndex: 0, selectedStep: firstId });
