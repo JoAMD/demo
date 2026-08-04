@@ -16,6 +16,8 @@ function findInSplit(split: Extract<Step, { kind: 'split' }>, id: string): Step 
 }
 
 function StepContent({ step, result }: { step: Step; result: StepResult }) {
+  const payload = useTraceStore(useShallow((s) => s.payload));
+
   switch (step.kind) {
     case 'email':
       return <EmailPreview step={step} />;
@@ -37,6 +39,9 @@ function StepContent({ step, result }: { step: Step; result: StepResult }) {
       return (
         <div className="text-[14px] text-[#a1a1aa]">
           <span className="text-white">Event:</span> {step.event}
+          {Object.keys(payload).length === 0 && (
+            <div className="mt-2 text-[12px] text-[#52525b] italic">No payload provided</div>
+          )}
         </div>
       );
   }
@@ -266,7 +271,7 @@ export default function StepInspector() {
 
   const step = useMemo(() => {
     if (!flow || !selectedStep) return null;
-    return findStep(flow.steps, selectedStep);
+    return findStep([flow.trigger, ...flow.steps], selectedStep);
   }, [flow, selectedStep]);
 
   const stepIndex = useMemo(
