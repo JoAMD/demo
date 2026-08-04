@@ -22,6 +22,11 @@ export function executeTrace(
     const result = evaluateStep(step, payload, flow.id);
     results.push(result);
 
+    // D-12: Stop on failure — failed step halts BFS
+    if (!result.passed) {
+      break;
+    }
+
     // D-05: Enqueue ALL children from split yes/no arrays
     // Prepend so branch children process before remaining main path
     if (step.kind === 'split') {
