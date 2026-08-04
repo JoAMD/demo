@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@xyflow/react/dist/style.css';
+import './index.css';
 import { worker } from './mocks/browser';
 import App from './App';
 

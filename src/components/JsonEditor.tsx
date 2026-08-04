@@ -2,9 +2,10 @@ import { useState, useCallback } from 'react';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { executeTrace } from '../engine/executionEngine';
+import { payloads } from '../mocks/fixtures/payloads';
 
 export default function JsonEditor() {
-  const [jsonText, setJsonText] = useState('');
+  const [jsonText, setJsonText] = useState(() => JSON.stringify(payloads[0], null, 2));
   const [parseError, setParseError] = useState<string | null>(null);
 
   const { flow, status, setPayload, setResults, setStatus } = useTraceStore(
@@ -16,6 +17,8 @@ export default function JsonEditor() {
       setStatus: state.setStatus,
     }))
   );
+
+  console.log('JsonEditor render', { flow: !!flow, status, parseError });
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -39,7 +42,11 @@ export default function JsonEditor() {
   );
 
   const handleRunTrace = useCallback(() => {
-    if (parseError || status === 'running' || !flow) return;
+    console.log('Run Trace clicked', { parseError, status, flow: !!flow });
+    if (parseError || status === 'running' || !flow) {
+      console.log('Run Trace blocked', { parseError, status, flow: !!flow });
+      return;
+    }
 
     let parsedPayload: Record<string, unknown>;
     try {
@@ -49,12 +56,15 @@ export default function JsonEditor() {
       return;
     }
 
+    console.log('Running trace...', { flowId: flow.id, payload: parsedPayload });
     setStatus('running');
     try {
       const traceResult = executeTrace(flow, parsedPayload);
+      console.log('Trace complete', { results: traceResult.results });
       setResults(traceResult.results);
       setStatus('done');
-    } catch {
+    } catch (err) {
+      console.error('Trace error', err);
       setStatus('error');
     }
   }, [flow, jsonText, parseError, status, setResults, setStatus]);
@@ -70,9 +80,10 @@ export default function JsonEditor() {
   );
 
   const isDisabled = parseError !== null || status === 'running' || !flow;
+  console.log('JsonEditor button state', { isDisabled, parseError, status, flow: !!flow });
 
   return (
-    <div className="w-96 flex flex-col gap-4 p-4">
+    <div className="w-96 h-full flex flex-col gap-4 p-4">
       <label htmlFor="json-editor" className="text-xs text-secondary">
         Event Payload
       </label>
@@ -81,7 +92,7 @@ export default function JsonEditor() {
         value={jsonText}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder="Paste event payload JSON here…"
+        placeholder="Event payload JSON"
         aria-invalid={parseError ? 'true' : undefined}
         className={`flex-1 min-h-[200px] resize-y font-mono text-[13px] bg-card rounded-lg p-3 focus-visible:ring-2 focus-visible:ring-accent outline-none ${
           parseError

@@ -21,7 +21,7 @@ export default function App() {
       </div>
 
       {/* Content row: canvas left, editor right */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <FlowCanvas />
         <div className="w-96 h-full border-l border-[#2a2a2a]">
           <JsonEditor />
