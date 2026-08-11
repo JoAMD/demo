@@ -1,0 +1,29 @@
+{
+  "phase": "1",
+  "phase_name": "Foundation & Trace Engine",
+  "timestamp": "2026-08-04T00:02:00Z",
+  "areas_completed": ["Type system & store shape", "Execution engine semantics", "Fixture data shapes"],
+  "areas_remaining": ["Canvas shell layout"],
+  "decisions": {
+    "Type system & store shape": [
+      {"question": "Step type modeling", "answer": "Discriminated union on `kind` field", "options_presented": ["Discriminated union", "Separate types + wrapper"]},
+      {"question": "Trace evaluation return per step", "answer": "Flat result + branch field", "options_presented": ["Flat result + branch field", "Nested per-type results"]},
+      {"question": "Zustand store shape", "answer": "Single traceStore", "options_presented": ["Single traceStore", "Split stores"]},
+      {"question": "Zustand selector strategy", "answer": "useShallow from day one", "options_presented": ["useShallow from day one", "Add later when needed"]}
+    ],
+    "Execution engine semantics": [
+      {"question": "Graph traversal", "answer": "BFS with queue, prefer npm package for common logic (ask before choosing)", "options_presented": ["BFS with queue", "DFS with stack"]},
+      {"question": "Split filter evaluation", "answer": "Inline switch/match on predicate type", "options_presented": ["Inline switch/match", "Predicate registry"]},
+      {"question": "Type coercion in filters", "answer": "Loose coercion — coerce to same type before comparing", "options_presented": ["Loose coercion", "Strict typing"]},
+      {"question": "Engine shape", "answer": "Pure function executeTrace(flow, payload) → TraceResult", "options_presented": ["Pure function", "Class with methods"]}
+    ],
+    "Fixture data shapes": [
+      {"question": "Sample flow definitions", "answer": "Linear, branching, multi-step (3, 5, 8+ steps)", "options_presented": ["Linear, branching, multi-step", "Minimal progressive"]},
+      {"question": "Event payloads", "answer": "Core events + edge cases (cart_abandoned, signup, purchase, password_reset, subscription_expired)", "options_presented": ["Core events + edge cases", "All from REQUIREMENTS.md"]},
+      {"question": "Test contacts", "answer": "Varied attributes (high/low engagement, tiers, bounced, unsubscribed)", "options_presented": ["Varied attributes", "Minimal set"]},
+      {"question": "Fixture organization", "answer": "Separate files (flows.ts, payloads.ts, contacts.ts)", "options_presented": ["Single fixtures.ts", "Separate files"]}
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": [".planning/ROADMAP.md", ".planning/PROJECT.md", ".planning/REQUIREMENTS.md"]
+}

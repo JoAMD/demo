@@ -1,0 +1,5 @@
+stop_at: Phase 1 UI-SPEC approved
+last_command: /gsd-ui-phase 1
+last_phase: 1
+last_milestone: 1
+resume_file: .planning/phases/01-foundation-trace-engine/01-UI-SPEC.md

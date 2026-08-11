@@ -56,7 +56,7 @@
 
 ## Phase 3: Split Popover & Features
 
-**Goal:** The killer differentiator — per-condition split evaluation popover. Plus essential robustness.
+**Goal:** The killer differentiator — per-condition split evaluation popover. Plus essential robustness and stop-on-failure behavior.
 
 **Requirements covered:** SPLT-01, SPLT-02, SPLT-03, EVT-02
 
@@ -64,17 +64,21 @@
 
 | Plan | Description | Dependencies | Audit Notes |
 |------|-------------|--------------|-------------|
-| 3.1 Split Popover | Per-condition drill-down: expression, evaluated values, PASS/FAIL, suggestion. | 2.1 | **Keep.** Core value prop. |
-| 3.2 Sample Templates | Pre-built payload templates for common events (cart_abandoned, etc.). | 1.5 | **Simplify.** Add 2-3 templates as fixture objects in the JSON editor default value. Not a separate plan — just pick good defaults. |
-| 3.3 Edge Cases | Handle empty payloads, missing contacts, malformed JSON, large graphs. | All | **Scopen down.** Fix: (1) malformed JSON → inline error, (2) missing contact → skip contact fields, (3) empty payload → show message. Skip "large graphs" — not a realistic debug scenario. |
-| 3.4 Branch Override (Sandbox) | Toggle to force trace down "wrong" branch. Yellow SANDBOX badge. Verify other email's content without editing filters. | 2.4, 3.1 | **Drop.** Over-engineered for v1. The split popover already shows what each branch evaluates to. Branch override is a v2 feature if users request it. |
-| 3.5 Export Trace as JSON | Button to download full trace state as stable JSON schema. For bug reports, PRs, Slack threads. | 2.4 | **Keep but scope down.** `JSON.stringify` the trace result, save as `.json`. No schema versioning or import — just a dump. |
+| 3.1 Split Popover | Per-condition drill-down: expression, evaluated values, PASS/FAIL. Replaces existing SplitPreview in StepInspector. | 2.1 | **Keep.** Core value prop. |
+| 3.2 Payload Templates | Auto-match payload to flow trigger event on flow selection. Flow selector becomes template selector. | 1.5 | **Simplify.** No separate dropdown — selecting flow loads matching payload. |
+| 3.3 Edge Cases | Handle empty payloads, missing contacts, malformed JSON. | All | **Scopen down.** Fix: (1) malformed JSON → inline error (done), (2) missing contact → skip contact fields (done), (3) empty payload → show "No payload provided" in trigger step inspector. |
+| 3.4 Branch Override (Sandbox) | Toggle to force trace down "wrong" branch. | 2.4, 3.1 | **Drop.** Over-engineered for v1. |
+| 3.5 Export Trace as JSON | Button with download icon + "Export" label, left of Run Trace in header. Exports `{ flow, payload, results }` as `.json`. | 2.4 | **Keep.** Simple JSON dump, no schema versioning. |
+| 3.6 Stop on Failure | If step fails, flow stops. Subsequent steps unexecuted, gray, unclickable. Split `branchTaken: 'no'` is valid, doesn't stop flow. | 1.2 | **Add.** Matches real Nitrosend behavior. |
 
 **Exit criteria:**
-- Clicking split node opens popover with per-condition breakdown
-- Popover shows actual values and suggests fixes for failed conditions
+- Clicking split node shows per-condition breakdown with evaluated values and PASS/FAIL
+- Flow auto-loads matching payload when flow is selected
 - No crashes on edge cases (empty payload, missing contact, malformed JSON)
-- Export button downloads trace as JSON
+- Empty payload shows "No payload provided" in trigger step inspector
+- Export button downloads trace + input as JSON
+- Failed step stops flow — subsequent steps unexecuted, gray, unclickable
+- Trigger step bug fixed (shows in inspector, not "Step not in trace results")
 
 **Risk:** Split condition evaluation must match Nitrosend's actual filter syntax (AND/OR groups, type coercion). Validate against real flow definitions.
 
@@ -111,10 +115,10 @@
 | Phase | Status | Requirements | Plans |
 |-------|--------|-------------|-------|
 | 1: Foundation & Trace Engine | ✓ | 7 | 5 |
-| 2: Trace UI & Inspector | ○ | 7 | 3 |
-| 3: Split Popover & Features | ○ | 4 | 3 |
+| 2: Trace UI & Inspector | ✓ | 7 | 3 |
+| 3: Split Popover & Features | ✓ | 4 | 3 |
 | 4: UI Polish & Professional Styling | ○ | 5 | 3 |
-| **Total** | | **23** | **14** |
+| **Total** | | **23** | **15** |
 
 ---
 
