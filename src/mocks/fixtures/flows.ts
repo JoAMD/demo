@@ -17,7 +17,7 @@ export const flows: Flow[] = [
         kind: 'email',
         id: 'step_1',
         subject: 'Welcome to Nitrosend!',
-        body: 'Hi {{contact.first_name}}, welcome aboard.',
+        body: 'Hi {{ contact.first_name | default: "there" }}, welcome aboard.',
       },
       {
         kind: 'email',
