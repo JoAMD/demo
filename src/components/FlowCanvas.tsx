@@ -123,14 +123,16 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
     });
   }
 
-  function addEdge(sourceId: string, targetId: string, sourceHandle?: string) {
-    const executed = executedIds.has(sourceId) && executedIds.has(targetId);
+  function addEdge(sourceId: string, targetId: string, sourceHandle?: string, isExecuted?: boolean) {
+    const executed = isExecuted ?? (executedIds.has(sourceId) && executedIds.has(targetId));
     const isBranch = sourceHandle === 'yes' || sourceHandle === 'no';
+    const targetSelected = selectedStep === targetId;
     edges.push({
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
       type: 'step',
+      zIndex: executed ? 1 : 0,
       ...(sourceHandle ? { sourceHandle: isBranch ? 'split' : sourceHandle } : {}),
       ...(isBranch
         ? {
@@ -143,7 +145,11 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
         : {}),
       animated: executed,
       style: executed
-        ? { stroke: ACCENT, strokeWidth: 2 }
+        ? {
+            stroke: ACCENT,
+            strokeWidth: targetSelected ? 2 : 1.5,
+            strokeOpacity: targetSelected ? 1 : 0.6,
+          }
         : { stroke: MUTED, strokeWidth: 1 },
     });
   }
@@ -159,6 +165,8 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
   }
 
   traverseTree(tree);
+  // Ponytail: executed edges last → render on top of non-executed
+  edges.sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
   return { nodes, edges };
 }
 
