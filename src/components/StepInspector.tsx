@@ -196,13 +196,13 @@ function SplitPreview({
         return (
           <div
             key={`${cr.name}-${i}`}
-            className="flex items-center justify-between text-[13px] py-1.5 border-b border-border last:border-0"
+            className="flex items-center gap-2 text-[13px] py-1.5 border-b border-border last:border-0"
           >
-            <span className="font-mono text-secondary">
+            <span className="font-mono text-secondary min-w-0 truncate">
               {cr.name} {filter?.predicate} {filter?.value}
             </span>
-            <span className="flex items-center gap-2">
-              <span className="text-muted">
+            <span className="flex items-center gap-2 shrink-0">
+              <span className="text-muted whitespace-nowrap">
                 → {cr.value === undefined ? 'undefined' : String(cr.value)}
               </span>
                 <span
