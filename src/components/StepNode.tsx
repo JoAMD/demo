@@ -42,15 +42,15 @@ function StepNodeComponent({ data }: NodeProps) {
 
   return (
     <div className={nodeClasses} style={{ width: 172 }}>
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       <div className="flex items-center gap-2">
         <NodeIcon kind={kind} className={`w-4 h-4 shrink-0 ${iconColor}`} />
         <div className="font-medium text-primary truncate flex-1 min-w-0">{label}</div>
       </div>
       {kind === 'split' ? (
-        <Handle id="split" type="source" position={Position.Bottom} />
+        <Handle id="split" type="source" position={Position.Bottom} style={{ opacity: 0 }} />
       ) : (
-        <Handle type="source" position={Position.Bottom} />
+        <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
       )}
     </div>
   );
