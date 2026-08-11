@@ -1,7 +1,10 @@
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useRef, useEffect } from 'react';
+import { Liquid } from 'liquidjs';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { Step, StepResult, Filter, FilterGroup } from '../engine/types';
+
+const liquid = new Liquid();
 
 export function findStep(steps: Step[], id: string): Step | null {
   for (const s of steps) {
@@ -67,21 +70,21 @@ function EmailPreview({ step }: { step: Extract<Step, { kind: 'email' }> }) {
   const [showRaw, setShowRaw] = useState(false);
   const payload = useTraceStore(useShallow((s) => s.payload));
 
-  const resolvedSubject = step.subject.replace(/\{\{(.+?)\}\}/g, (_, path) => {
-    const val = path.split('.').reduce((obj: unknown, key: string) => {
-      if (obj === null || obj === undefined) return undefined;
-      return (obj as Record<string, unknown>)[key];
-    }, payload);
-    return val !== undefined ? String(val) : `{{${path.trim()}}}`;
-  });
+  const resolvedSubject = useMemo(() => {
+    try {
+      return liquid.parseAndRenderSync(step.subject, payload);
+    } catch {
+      return step.subject;
+    }
+  }, [step.subject, payload]);
 
-  const resolvedBody = step.body.replace(/\{\{(.+?)\}\}/g, (_, path) => {
-    const val = path.split('.').reduce((obj: unknown, key: string) => {
-      if (obj === null || obj === undefined) return undefined;
-      return (obj as Record<string, unknown>)[key];
-    }, payload);
-    return val !== undefined ? String(val) : `{{${path.trim()}}}`;
-  });
+  const resolvedBody = useMemo(() => {
+    try {
+      return liquid.parseAndRenderSync(step.body, payload);
+    } catch {
+      return step.body;
+    }
+  }, [step.body, payload]);
 
   return (
     <div className="flex flex-col h-full">
@@ -262,8 +265,20 @@ function StepDetail({
   onNext: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    containerRef.current?.focus();
+  }, [step.id]);
+
+  const handleClick = (action: () => void) => () => {
+    action();
+    containerRef.current?.focus();
+  };
+
   return (
     <div
+      ref={containerRef}
       className="h-full flex flex-col p-4"
       tabIndex={0}
       onKeyDown={onKeyDown}
@@ -296,7 +311,7 @@ function StepDetail({
       <div className="flex justify-between pt-3 border-t border-border">
         <button
           type="button"
-          onClick={onPrev}
+          onClick={handleClick(onPrev)}
           disabled={stepIndex <= 0}
           className="text-[14px] text-secondary disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
         >
@@ -304,7 +319,7 @@ function StepDetail({
         </button>
         <button
           type="button"
-          onClick={onNext}
+          onClick={handleClick(onNext)}
           disabled={stepIndex >= totalSteps - 1}
           className="text-[14px] text-secondary disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
         >
@@ -343,10 +358,10 @@ export default function StepInspector() {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prevStep();
-      else if (e.key === 'ArrowRight') nextStep();
+      if (e.key === 'ArrowLeft' && stepIndex > 0) prevStep();
+      else if (e.key === 'ArrowRight' && stepIndex < results.length - 1) nextStep();
     },
-    [nextStep, prevStep]
+    [nextStep, prevStep, stepIndex, results.length]
   );
 
   if (results.length === 0 || !selectedStep) return <EmptyState />;
