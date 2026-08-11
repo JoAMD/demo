@@ -81,6 +81,19 @@ function subtreeWidth(node: TreeNode): number {
   return Math.max(w, NODE_W);
 }
 
+// Find path from root to target step ID
+function findPath(node: TreeNode, targetId: string): Set<string> | null {
+  if (node.step.id === targetId) return new Set([node.step.id]);
+  for (const child of node.children) {
+    const path = findPath(child, targetId);
+    if (path) {
+      path.add(node.step.id);
+      return path;
+    }
+  }
+  return null;
+}
+
 // Position tree recursively: node centered over children
 function layoutTree(node: TreeNode, x: number, y: number, positions: Map<string, { x: number; y: number }>) {
   const w = subtreeWidth(node);
@@ -103,6 +116,9 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
   const positions = new Map<string, { x: number; y: number }>();
   layoutTree(tree, 0, 0, positions);
 
+  // Path from trigger to selected step — edges on this path get full highlight
+  const pathToSelected = selectedStep ? findPath(tree, selectedStep) : null;
+
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -123,16 +139,16 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
     });
   }
 
-  function addEdge(sourceId: string, targetId: string, sourceHandle?: string, isExecuted?: boolean) {
-    const executed = isExecuted ?? (executedIds.has(sourceId) && executedIds.has(targetId));
+  function addEdge(sourceId: string, targetId: string, sourceHandle?: string) {
+    const executed = executedIds.has(sourceId) && executedIds.has(targetId);
+    const onPath = pathToSelected?.has(sourceId) && pathToSelected?.has(targetId);
     const isBranch = sourceHandle === 'yes' || sourceHandle === 'no';
-    const targetSelected = selectedStep === targetId;
     edges.push({
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
       type: 'step',
-      zIndex: executed ? 1 : 0,
+      zIndex: onPath ? 2 : executed ? 1 : 0,
       ...(sourceHandle ? { sourceHandle: isBranch ? 'split' : sourceHandle } : {}),
       ...(isBranch
         ? {
@@ -144,12 +160,10 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
           }
         : {}),
       animated: executed,
-      style: executed
-        ? {
-            stroke: ACCENT,
-            strokeWidth: targetSelected ? 2 : 1.5,
-            strokeOpacity: targetSelected ? 1 : 0.6,
-          }
+      style: onPath
+        ? { stroke: ACCENT, strokeWidth: 2, strokeOpacity: 1 }
+        : executed
+        ? { stroke: ACCENT, strokeWidth: 1.5, strokeOpacity: 0.6 }
         : { stroke: MUTED, strokeWidth: 1 },
     });
   }
