@@ -3,23 +3,26 @@
 // D-07: Loose type coercion before comparison
 // D-08: Pure function executeTrace(flow, payload) → TraceResult
 
+import { Liquid } from 'liquidjs';
 import type { Flow, Step, StepResult, Filter, FilterGroup, TraceResult, ConditionResult } from './types';
 
-export function executeTrace(
+const liquid = new Liquid();
+
+export async function executeTrace(
   flow: Flow,
   payload: Record<string, unknown>
-): TraceResult {
+): Promise<TraceResult> {
   const results: StepResult[] = [];
 
   // Process trigger first
-  results.push(evaluateStep(flow.trigger, payload, flow.id));
+  results.push(await evaluateStep(flow.trigger, payload, flow.id));
 
   // BFS queue initialized with main path steps
   const queue: Step[] = [...flow.steps];
 
   while (queue.length > 0) {
     const step = queue.shift()!;
-    const result = evaluateStep(step, payload, flow.id);
+    const result = await evaluateStep(step, payload, flow.id);
     results.push(result);
 
     // D-12: Stop on failure — failed step halts BFS
@@ -38,11 +41,11 @@ export function executeTrace(
   return { flowId: flow.id, results };
 }
 
-function evaluateStep(
+async function evaluateStep(
   step: Step,
   payload: Record<string, unknown>,
   flowId: number
-): StepResult {
+): Promise<StepResult> {
   switch (step.kind) {
     case 'split': {
       try {
@@ -64,27 +67,22 @@ function evaluateStep(
       }
     }
     case 'email': {
+      const contact = getNestedValue(payload, 'contact') as Record<string, unknown> | undefined;
+      if (!contact || !contact.email) {
+        return { stepId: step.id, kind: 'email', passed: false, error: 'No contact selected — cannot send email' };
+      }
       // Bounce failure only on Welcome Series (flow 1)
       if (flowId === 1) {
         const dataContact = getNestedValue(payload, 'data.contact') as Record<string, unknown> | undefined;
-        const contact = getNestedValue(payload, 'contact') as Record<string, unknown> | undefined;
-        const bounced = (dataContact?.bounced ?? contact?.bounced) as boolean | undefined;
+        const bounced = (dataContact?.bounced ?? contact.bounced) as boolean | undefined;
         if (bounced) {
           return { stepId: step.id, kind: 'email', passed: false, error: 'Email bounced — delivery failed' };
         }
       }
-      const unresolved = step.body.match(/\{\{(.+?)\}\}/g);
-      if (unresolved) {
-        for (const match of unresolved) {
-          const path = match.slice(2, -2).trim();
-          const val = path.split('.').reduce<unknown>((obj, key) => {
-            if (obj === null || obj === undefined) return undefined;
-            return (obj as Record<string, unknown>)[key];
-          }, payload);
-          if (val === undefined) {
-            return { stepId: step.id, kind: 'email', passed: false, error: `Template variable not found: ${path}` };
-          }
-        }
+      try {
+        await liquid.parseAndRender(step.body, payload);
+      } catch (e) {
+        return { stepId: step.id, kind: 'email', passed: false, error: `Template render failed: ${e instanceof Error ? e.message : String(e)}` };
       }
       return { stepId: step.id, kind: 'email', passed: true };
     }

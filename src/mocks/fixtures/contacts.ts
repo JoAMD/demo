@@ -49,4 +49,14 @@ export const contacts = [
     unique_opens: 0,
     unsubscribed_at: null,
   },
+  {
+    email: 'no.name@example.com',
+    first_name: '',
+    last_name: '',
+    engagement_rating: 'low',
+    tier: 'free',
+    bounced: false,
+    unique_opens: 0,
+    unsubscribed_at: null,
+  },
 ];

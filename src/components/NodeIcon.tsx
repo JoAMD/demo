@@ -1,19 +1,22 @@
 import { memo } from 'react';
-import type { ReactNode } from 'react';
+import { Mail, Zap, Split, Flag } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const PATHS: Record<string, ReactNode> = {
-  trigger: (<><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 2v4M16 2v4" /></>),
-  email: (<><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 6 10-6" /></>),
-  split: (<><path d="M12 3v8m0 0-5 5m5-5 5 5M7 16l-4 4m5-4h8m0 0 4 4" /></>),
-  webhook: (<><path d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m9.193-3.34a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 6.364 6.364l1.757-1.757" /></>),
+const ICONS: Record<string, LucideIcon> = {
+  trigger: Flag,
+  email: Mail,
+  split: Split,
+  webhook: Zap,
 };
 
+// ponytail: split icon rotated 90deg, color from className
 export const NodeIcon = memo(function NodeIcon({ kind, className = 'w-4 h-4' }: { kind: string; className?: string }) {
-  // ponytail: fall back to webhook icon instead of crashing on unknown kind
-  const glyph = PATHS[kind] ?? PATHS.webhook;
+  const Icon = ICONS[kind] ?? ICONS.webhook;
+  const isSplit = kind === 'split';
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-      {glyph}
-    </svg>
+    <Icon
+      className={`${className}${isSplit ? ' -rotate-270' : ''}`}
+      strokeWidth={1.5}
+    />
   );
 });
