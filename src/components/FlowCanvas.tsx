@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { ReactFlow, type Node, type Edge, Position, type NodeMouseHandler } from '@xyflow/react';
-import dagre from '@dagrejs/dagre';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { StepNode } from './StepNode';
@@ -8,16 +7,18 @@ import type { Flow, Step, FilterGroup } from '../engine/types';
 
 const nodeTypes = { step: StepNode };
 
-// Accent color from UI-SPEC
 const ACCENT = '#f97316';
-// ponytail: edge color uses CSS variable for theme support
 const MUTED = 'var(--border-color)';
+
+const NODE_W = 172;
+const NODE_H = 36;
+const H_GAP = 40;
+const V_GAP = 80;
 
 function countConditions(group: FilterGroup): number {
   return group.conditions.length;
 }
 
-// D-14: Simple labeled box — label derived from step kind
 function stepLabel(step: Step): string {
   switch (step.kind) {
     case 'email': return step.subject;
@@ -29,21 +30,89 @@ function stepLabel(step: Step): string {
   }
 }
 
-// Flow tree → React Flow nodes/edges with path highlight and active step
-function flowToGraph(
-  flow: Flow,
-  executedIds: Set<string>,
-  selectedStep: string | null,
-): { nodes: Node[]; edges: Edge[]; branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> } {
+// Tree node for layout computation
+type TreeNode = {
+  step: Step;
+  children: TreeNode[];
+};
+
+// Build tree from flow: main path + split children
+function buildTree(flow: Flow): TreeNode {
+  const triggerNode: TreeNode = { step: flow.trigger, children: [] };
+
+  let current = triggerNode;
+  for (const step of flow.steps) {
+    const child: TreeNode = { step, children: [] };
+    current.children.push(child);
+    if (step.kind === 'split') {
+      for (const yesChild of step.yes) {
+        child.children.push(buildSubtree(yesChild));
+      }
+      for (const noChild of step.no) {
+        child.children.push(buildSubtree(noChild));
+      }
+    }
+    current = child;
+  }
+  return triggerNode;
+}
+
+function buildSubtree(step: Step): TreeNode {
+  const node: TreeNode = { step, children: [] };
+  if (step.kind === 'split') {
+    for (const yesChild of step.yes) {
+      node.children.push(buildSubtree(yesChild));
+    }
+    for (const noChild of step.no) {
+      node.children.push(buildSubtree(noChild));
+    }
+  }
+  return node;
+}
+
+// Compute subtree width (sum of children widths + gaps)
+function subtreeWidth(node: TreeNode): number {
+  if (node.children.length === 0) return NODE_W;
+  let w = 0;
+  for (let i = 0; i < node.children.length; i++) {
+    w += subtreeWidth(node.children[i]);
+    if (i < node.children.length - 1) w += H_GAP;
+  }
+  return Math.max(w, NODE_W);
+}
+
+// Position tree recursively: node centered over children
+function layoutTree(node: TreeNode, x: number, y: number, positions: Map<string, { x: number; y: number }>) {
+  const w = subtreeWidth(node);
+  positions.set(node.step.id, { x: x + w / 2 - NODE_W / 2, y });
+
+  if (node.children.length > 0) {
+    const childrenTotalW = node.children.reduce((sum, c, i) => sum + subtreeWidth(c) + (i < node.children.length - 1 ? H_GAP : 0), 0);
+    let cx = x + (w - childrenTotalW) / 2;
+    for (const child of node.children) {
+      const cw = subtreeWidth(child);
+      layoutTree(child, cx, y + NODE_H + V_GAP, positions);
+      cx += cw + H_GAP;
+    }
+  }
+}
+
+// Build React Flow nodes/edges with tree layout
+function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string | null) {
+  const tree = buildTree(flow);
+  const positions = new Map<string, { x: number; y: number }>();
+  layoutTree(tree, 0, 0, positions);
+
   const nodes: Node[] = [];
   const edges: Edge[] = [];
-  // ponytail: defer split branch x-positioning to layout pass — needs dagre x for parent first
-  const branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> = [];
 
   function addNode(step: Step) {
+    const pos = positions.get(step.id) ?? { x: 0, y: 0 };
     nodes.push({
       id: step.id,
-      position: { x: 0, y: 0 },
+      position: pos,
+      targetPosition: Position.Top,
+      sourcePosition: Position.Bottom,
       data: {
         label: stepLabel(step),
         kind: step.kind,
@@ -78,76 +147,18 @@ function flowToGraph(
     });
   }
 
-  // Recursively traverse split children, recording branch targets
-  function traverseChildren(step: Step) {
-    if (step.kind === 'split') {
-      step.yes.forEach((child) => {
-        branchTargets.push({ id: child.id, parentId: step.id, side: 'yes' });
-        addEdge(step.id, child.id, 'yes');
-        addNode(child);
-        traverseChildren(child);
-      });
-      step.no.forEach((child) => {
-        branchTargets.push({ id: child.id, parentId: step.id, side: 'no' });
-        addEdge(step.id, child.id, 'no');
-        addNode(child);
-        traverseChildren(child);
-      });
+  function traverseTree(node: TreeNode) {
+    addNode(node.step);
+    for (const child of node.children) {
+      const isYes = node.step.kind === 'split' && node.step.yes.some((s) => s.id === child.step.id);
+      const isNo = node.step.kind === 'split' && node.step.no.some((s) => s.id === child.step.id);
+      addEdge(node.step.id, child.step.id, isYes ? 'yes' : isNo ? 'no' : undefined);
+      traverseTree(child);
     }
   }
 
-  // Root: trigger
-  addNode(flow.trigger);
-
-  // Connect trigger → first step, then each step to next
-  flow.steps.forEach((step, i) => {
-    addNode(step);
-    const parentId = i === 0 ? flow.trigger.id : flow.steps[i - 1].id;
-    addEdge(parentId, step.id);
-    traverseChildren(step);
-  });
-
-  return { nodes, edges, branchTargets };
-}
-
-// D-13: dagre auto-layout, rankdir TB, 172×36 per node
-const NODE_W = 172;
-const NODE_H = 36;
-
-// ponytail: branch x-offset computed after dagre — needs parent's dagre x
-function getLayoutedElements(
-  nodes: Node[],
-  edges: Edge[],
-  branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> = [],
-) {
-  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 50 });
-
-  nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: NODE_H }));
-  edges.forEach((e) => g.setEdge(e.source, e.target));
-
-  dagre.layout(g);
-
-  const offset = NODE_W + 40; // 212px between yes/no branches
-  const xOverride: Record<string, number> = {};
-  for (const { id, parentId, side } of branchTargets) {
-    const parentX = g.node(parentId)?.x ?? 0;
-    xOverride[id] = parentX + (side === 'yes' ? -offset : offset);
-  }
-
-  return {
-    nodes: nodes.map((n) => {
-      const pos = g.node(n.id);
-      const x = xOverride[n.id] ?? pos.x - NODE_W / 2;
-      return {
-        ...n,
-        targetPosition: Position.Top,
-        sourcePosition: Position.Bottom,
-        position: { x, y: pos.y - NODE_H / 2 },
-      };
-    }),
-    edges,
-  };
+  traverseTree(tree);
+  return { nodes, edges };
 }
 
 export default function FlowCanvas() {
@@ -156,17 +167,13 @@ export default function FlowCanvas() {
   const selectedStep = useTraceStore(useShallow((s) => s.selectedStep));
   const setSelectedStep = useTraceStore((s) => s.setSelectedStep);
 
-  // Derived set of executed step IDs — memoized on results
   const executedIds = useMemo(() => new Set(results.map((r) => r.stepId)), [results]);
 
-  // Memoize layout computation — only recomputes when flow, results, or selection change
   const { nodes, edges } = useMemo(() => {
     if (!flow) return { nodes: [], edges: [] };
-    const graph = flowToGraph(flow, executedIds, selectedStep);
-    return getLayoutedElements(graph.nodes, graph.edges, graph.branchTargets);
+    return flowToGraph(flow, executedIds, selectedStep);
   }, [flow, executedIds, selectedStep]);
 
-  // D-04: Clicking a node jumps the step inspector to that step
   const onNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
       if (executedIds.has(node.id)) {
@@ -176,7 +183,6 @@ export default function FlowCanvas() {
     [setSelectedStep, executedIds],
   );
 
-  // Empty state: "No flow loaded" centered
   if (!flow) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-0" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -185,7 +191,6 @@ export default function FlowCanvas() {
     );
   }
 
-  // D-15: fitView on load, zoom 0.2–2.0
   return (
     <div className="flex-1 min-h-0" style={{ backgroundColor: 'var(--bg-primary)', height: '100%' }}>
       <ReactFlow
