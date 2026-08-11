@@ -49,8 +49,8 @@ function StepNodeComponent({ data }: NodeProps) {
       </div>
       {kind === 'split' ? (
         <>
-          <Handle id="yes" type="source" position={Position.Left} style={{ top: '50%' }} />
-          <Handle id="no" type="source" position={Position.Right} style={{ top: '50%' }} />
+          <Handle id="yes" type="source" position={Position.Bottom} style={{ left: '30%' }} />
+          <Handle id="no" type="source" position={Position.Bottom} style={{ left: '70%' }} />
         </>
       ) : (
         <Handle type="source" position={Position.Bottom} />
