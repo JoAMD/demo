@@ -34,9 +34,11 @@ function flowToGraph(
   flow: Flow,
   executedIds: Set<string>,
   selectedStep: string | null,
-): { nodes: Node[]; edges: Edge[] } {
+): { nodes: Node[]; edges: Edge[]; branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
+  // ponytail: defer split branch x-positioning to layout pass — needs dagre x for parent first
+  const branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> = [];
 
   function addNode(step: Step) {
     nodes.push({
@@ -54,11 +56,21 @@ function flowToGraph(
 
   function addEdge(sourceId: string, targetId: string, sourceHandle?: string) {
     const executed = executedIds.has(sourceId) && executedIds.has(targetId);
+    const isBranch = sourceHandle === 'yes' || sourceHandle === 'no';
     edges.push({
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
       ...(sourceHandle ? { sourceHandle } : {}),
+      ...(isBranch
+        ? {
+            label: sourceHandle,
+            labelStyle: { fontSize: 10, fontWeight: 600, fill: 'var(--text-primary)' },
+            labelBgStyle: { fill: 'var(--bg-card)' },
+            labelBgPadding: [4, 2] as [number, number],
+            labelBgBorderRadius: 4,
+          }
+        : {}),
       animated: executed,
       style: executed
         ? { stroke: ACCENT, strokeWidth: 2 }
@@ -66,16 +78,17 @@ function flowToGraph(
     });
   }
 
-  // Recursively traverse split children
+  // Recursively traverse split children, recording branch targets
   function traverseChildren(step: Step) {
     if (step.kind === 'split') {
-      // ponytail: yes processed first → dagre places yes LEFT
       step.yes.forEach((child) => {
+        branchTargets.push({ id: child.id, parentId: step.id, side: 'yes' });
         addEdge(step.id, child.id, 'yes');
         addNode(child);
         traverseChildren(child);
       });
       step.no.forEach((child) => {
+        branchTargets.push({ id: child.id, parentId: step.id, side: 'no' });
         addEdge(step.id, child.id, 'no');
         addNode(child);
         traverseChildren(child);
@@ -94,30 +107,43 @@ function flowToGraph(
     traverseChildren(step);
   });
 
-  return { nodes, edges };
+  return { nodes, edges, branchTargets };
 }
 
 // D-13: dagre auto-layout, rankdir TB, 172×36 per node
 const NODE_W = 172;
 const NODE_H = 36;
 
-function getLayoutedElements(nodes: Node[], edges: Edge[]) {
+// ponytail: branch x-offset computed after dagre — needs parent's dagre x
+function getLayoutedElements(
+  nodes: Node[],
+  edges: Edge[],
+  branchTargets: Array<{ id: string; parentId: string; side: 'yes' | 'no' }> = [],
+) {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'TB' });
+  g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 50 });
 
   nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: NODE_H }));
   edges.forEach((e) => g.setEdge(e.source, e.target));
 
   dagre.layout(g);
 
+  const offset = NODE_W + 40; // 212px between yes/no branches
+  const xOverride: Record<string, number> = {};
+  for (const { id, parentId, side } of branchTargets) {
+    const parentX = g.node(parentId)?.x ?? 0;
+    xOverride[id] = parentX + (side === 'yes' ? -offset : offset);
+  }
+
   return {
     nodes: nodes.map((n) => {
       const pos = g.node(n.id);
+      const x = xOverride[n.id] ?? pos.x - NODE_W / 2;
       return {
         ...n,
         targetPosition: Position.Top,
         sourcePosition: Position.Bottom,
-        position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 },
+        position: { x, y: pos.y - NODE_H / 2 },
       };
     }),
     edges,
@@ -137,7 +163,7 @@ export default function FlowCanvas() {
   const { nodes, edges } = useMemo(() => {
     if (!flow) return { nodes: [], edges: [] };
     const graph = flowToGraph(flow, executedIds, selectedStep);
-    return getLayoutedElements(graph.nodes, graph.edges);
+    return getLayoutedElements(graph.nodes, graph.edges, graph.branchTargets);
   }, [flow, executedIds, selectedStep]);
 
   // D-04: Clicking a node jumps the step inspector to that step
