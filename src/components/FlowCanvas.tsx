@@ -52,17 +52,14 @@ function flowToGraph(
     });
   }
 
-  function addEdge(sourceId: string, targetId: string, label?: string) {
+  function addEdge(sourceId: string, targetId: string, sourceHandle?: string) {
     const executed = executedIds.has(sourceId) && executedIds.has(targetId);
     edges.push({
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
+      ...(sourceHandle ? { sourceHandle } : {}),
       animated: executed,
-      label: label,
-      labelStyle: { fill: 'var(--text-secondary)', fontSize: 10 },
-      labelBgStyle: { fill: 'var(--bg-secondary)', fillOpacity: 0.8 },
-      labelBgPadding: [4, 2] as [number, number],
       style: executed
         ? { stroke: ACCENT, strokeWidth: 2 }
         : { stroke: MUTED, strokeWidth: 1 },
@@ -72,6 +69,7 @@ function flowToGraph(
   // Recursively traverse split children
   function traverseChildren(step: Step) {
     if (step.kind === 'split') {
+      // ponytail: yes processed first → dagre places yes LEFT
       step.yes.forEach((child) => {
         addEdge(step.id, child.id, 'yes');
         addNode(child);

@@ -9,7 +9,8 @@
   --border-color: #e5e5e5;
   --text-primary: #171717;
   --text-secondary: #737373;
-  --text-muted: #a3a3a3;
+  /* ponytail: text-muted is decorative-only (3.05:1 dark, 3.5:1 light) — never use for instructional content */
+  --text-muted: #737373;
 }
 
 .dark {
@@ -32,4 +33,11 @@
   --color-accent: #f97316;
   --color-success: #22c55e;
   --color-error: #ef4444;
+  --color-node-trigger: #f97316;
+  --color-node-email: #3b82f6;
+  --color-node-split: #a855f7;
+  --color-node-webhook: #22c55e;
 }
+
+/* ponytail: type scale — body=14px (text-sm), secondary=12px (text-xs), micro=10px (text-[10px]) — kept inline per component, no Tailwind override */
+/* contrast: text-secondary on bg-card >= 4.5:1 (AA) verified light+dark */
