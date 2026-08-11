@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { ReactFlow, type Node, type Edge, Position, type NodeMouseHandler } from '@xyflow/react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ReactFlow, useReactFlow, type Node, type Edge, Position, type NodeMouseHandler } from '@xyflow/react';
 import { useTraceStore } from '../store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
 import { StepNode } from './StepNode';
@@ -175,8 +175,14 @@ export default function FlowCanvas() {
   const results = useTraceStore(useShallow((s) => s.results));
   const selectedStep = useTraceStore(useShallow((s) => s.selectedStep));
   const setSelectedStep = useTraceStore((s) => s.setSelectedStep);
+  const { fitView } = useReactFlow();
 
   const executedIds = useMemo(() => new Set(results.map((r) => r.stepId)), [results]);
+
+  // ponytail: recenter canvas when flow changes
+  useEffect(() => {
+    if (flow) fitView({ duration: 200 });
+  }, [flow, fitView]);
 
   const { nodes, edges } = useMemo(() => {
     if (!flow) return { nodes: [], edges: [] };

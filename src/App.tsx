@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useTraceStore } from './store/traceStore';
 import { useShallow } from 'zustand/react/shallow';
+import { ReactFlowProvider } from '@xyflow/react';
 import FlowCanvas from './components/FlowCanvas';
 import JsonEditor from './components/JsonEditor';
 import StepInspector from './components/StepInspector';
@@ -119,7 +120,7 @@ export default function App() {
 
       {/* Content */}
       <TraceDock
-        canvas={<FlowCanvas />}
+        canvas={<ReactFlowProvider><FlowCanvas /></ReactFlowProvider>}
         inspector={<StepInspector />}
         editor={<JsonEditor />}
       />
