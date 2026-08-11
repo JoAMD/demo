@@ -130,7 +130,8 @@ function flowToGraph(flow: Flow, executedIds: Set<string>, selectedStep: string 
       id: `${sourceId}-${targetId}`,
       source: sourceId,
       target: targetId,
-      ...(sourceHandle ? { sourceHandle } : {}),
+      type: 'step',
+      ...(sourceHandle ? { sourceHandle: isBranch ? 'split' : sourceHandle } : {}),
       ...(isBranch
         ? {
             label: sourceHandle,

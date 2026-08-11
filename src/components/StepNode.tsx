@@ -48,10 +48,7 @@ function StepNodeComponent({ data }: NodeProps) {
         <div className="font-medium text-primary truncate flex-1 min-w-0">{label}</div>
       </div>
       {kind === 'split' ? (
-        <>
-          <Handle id="yes" type="source" position={Position.Bottom} style={{ left: '30%' }} />
-          <Handle id="no" type="source" position={Position.Bottom} style={{ left: '70%' }} />
-        </>
+        <Handle id="split" type="source" position={Position.Bottom} />
       ) : (
         <Handle type="source" position={Position.Bottom} />
       )}
