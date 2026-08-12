@@ -28,7 +28,10 @@ Open http://localhost:5173
 - **Contact selector** — Dropdown populates payload fields from fixture data
 - **Step inspector** — Per-step evaluation log with PASS/FAIL pills, Liquid template preview
 - **Run trace** — Execute flow against payload, see step results
+- **Mock execution engine** — Evaluates conditions, resolves Liquid templates, tracks pass/fail
 - **MSW mocks** — API responses mocked for development
+- **Export** — Download trace JSON for debugging or sharing
+- **Edge highlighting** — Selected path glows, unexecuted nodes dimmed
 
 ## Tech Stack
 
