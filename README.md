@@ -33,6 +33,15 @@ Open http://localhost:5173
 - **Export** — Download trace JSON for debugging or sharing
 - **Edge highlighting** — Selected path glows, unexecuted nodes dimmed
 
+## Future Work
+
+- Wait step timeline — visualize duration with entry/exit times and timezone conversion
+- Activity history — last 10 traces, replay from header without re-entering payload
+- Liquid resolution detail — source path, fallback detection, nested access walk
+- Sandbox branch override — force trace down specific split branch
+- Cross-flow emit_event tracing — multi-flow connected traces
+- Export re-import — JSON schema v2 for round-trip support
+
 ## Tech Stack
 
 - React 18 + TypeScript
