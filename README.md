@@ -22,15 +22,23 @@ Open http://localhost:5173
 
 ## What It Does
 
-- **Flow canvas** — Visualize flow graphs with React Flow
+- **Flow canvas** — Visualize flow graphs with React Flow, auto-layout via dagre
+- **Trace dock** — 3-pane resizable layout (canvas, inspector, editor)
 - **JSON editor** — Enter event payloads
-- **Run Trace** — Execute flow against payload, see step results
+- **Contact selector** — Dropdown populates payload fields from fixture data
+- **Step inspector** — Per-step evaluation log with PASS/FAIL pills, Liquid template preview
+- **Run trace** — Execute flow against payload, see step results
 - **MSW mocks** — API responses mocked for development
 
 ## Tech Stack
 
 - React 18 + TypeScript
 - Vite (build)
+- Tailwind CSS v4 (styling)
 - @xyflow/react (flow canvas)
+- @dagrejs/dagre (graph layout)
+- liquidjs (template resolution)
+- lucide-react (icons)
 - MSW (API mocking)
-- Zustand (state)
+- Zustand (state management)
+- Vitest (testing)

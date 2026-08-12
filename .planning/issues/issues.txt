@@ -1,5 +1,5 @@
-1. step inspector issue - undefined conditions? because of no contact select - see screenshot 1
-2. step inspector better layout?
-3. step inspector when reducing width, undefined and FALSE get cut out instead of wrapping - see screenshot 2 
+1. (done) step inspector issue - undefined conditions? because of no contact select - see screenshot 1
+2. (done) step inspector better layout?
+3. (done) step inspector when reducing width, undefined and FALSE get cut out instead of wrapping - see screenshot 2 
 3. a. the default width on page load - true/false pills still cut out for engagement split + jordan - see screenshot 3
 4. (done) flow needs to recentre when switching flows - similar to on page load yea
